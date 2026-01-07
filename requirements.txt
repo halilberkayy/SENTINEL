@@ -1,0 +1,89 @@
+# Core dependencies
+requests>=2.31.0
+aiohttp>=3.9.0
+beautifulsoup4>=4.12.0
+click>=8.1.7
+rich>=13.7.0
+lxml>=5.1.0
+python-dotenv>=1.0.0
+
+# Web UI & API (FastAPI)
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+jinja2>=3.1.0
+websockets>=12.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+email-validator>=2.1.0
+httpx>=0.26.0
+
+# AI & Intelligence
+google-generativeai>=0.3.0
+PyJWT>=2.8.0
+passlib>=1.7.4
+bcrypt<4.0.0
+structlog>=24.1.0
+
+# Async & Cache
+asyncio-throttle>=1.0.2
+redis>=5.0.1
+celery>=5.3.6
+
+# Security and cryptography
+cryptography>=42.0.0
+pyopenssl>=23.2.0
+
+# Data processing & Database
+urllib3>=2.1.0
+pandas>=2.1.0
+numpy>=1.26.0
+sqlalchemy[asyncio]>=2.0.25
+alembic>=1.13.0
+aiosqlite>=0.19.0
+asyncpg>=0.29.0
+psycopg2-binary>=2.9.9
+
+# Logging & Monitoring
+python-json-logger>=2.0.7
+prometheus-client>=0.19.0
+opentelemetry-api>=1.22.0
+opentelemetry-sdk>=1.22.0
+opentelemetry-instrumentation-fastapi>=0.43b0
+
+# Network and HTTP
+dnspython>=2.5.0
+scapy>=2.5.0
+
+# File handling
+pillow>=10.0.0
+
+# Web scraping and parsing
+selenium>=4.15.0
+requests-html>=0.10.0
+
+# Development and testing (optional)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+coverage>=7.3.0
+
+# Optional performance improvements
+uvloop>=0.19.0; sys_platform != "win32"
+# cchardet is removed due to build issues on Python 3.11+. 
+# Modern versions use charset-normalizer which is automatically included by requests.
+
+# Report generation
+markdown>=3.5.0
+weasyprint>=60.0.0
+
+# Additional security tools
+# pycrypto is unmaintained, using pycryptodome if needed, but cryptography is usually sufficient. Keeping if specific legacy code needs it.
+# pycrypto>=2.6.1 
+
+# Documentation
+sphinx>=7.2.0
+sphinx-rtd-theme>=1.3.0

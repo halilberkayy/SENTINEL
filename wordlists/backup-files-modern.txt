@@ -1,0 +1,415 @@
+# Backup Files Discovery 2025/2026 - Modern Patterns
+# SecLists-2025 Compatible | Updated: January 2026
+# https://github.com/halilberkayy/SENTINEL
+
+# ============================================
+# Database Backups
+# ============================================
+backup.sql
+backup.sql.gz
+backup.sql.zip
+backup.sql.bz2
+backup.sql.xz
+backup.sql.lz4
+backup.sql.zst
+db_backup.sql
+db_backup.sql.gz
+database_backup.sql
+database_backup.sql.gz
+database.sql
+database.sql.gz
+dump.sql
+dump.sql.gz
+mysqldump.sql
+mysqldump.sql.gz
+pg_dump.sql
+pg_dump.sql.gz
+pg_dump.tar
+pg_dump.tar.gz
+mongodb_backup.gz
+mongodump.gz
+mongodump.tar.gz
+mongodump.archive
+redis.rdb
+redis_backup.rdb
+dump.rdb
+appendonly.aof
+elasticsearch_snapshot
+cassandra_snapshot
+
+# ============================================
+# Web Application Backups
+# ============================================
+backup.zip
+backup.tar
+backup.tar.gz
+backup.tar.bz2
+backup.tar.xz
+backup.7z
+backup.rar
+site_backup.zip
+site_backup.tar.gz
+www_backup.zip
+www_backup.tar.gz
+web_backup.zip
+web_backup.tar.gz
+htdocs_backup.zip
+htdocs_backup.tar.gz
+public_html.zip
+public_html.tar.gz
+html_backup.zip
+html_backup.tar.gz
+files_backup.zip
+files_backup.tar.gz
+data_backup.zip
+data_backup.tar.gz
+full_backup.zip
+full_backup.tar.gz
+
+# ============================================
+# Configuration Backups
+# ============================================
+config.bak
+config.old
+config.backup
+config.php.bak
+config.php.old
+config.php.orig
+config.php~
+config.php.swp
+config.js.bak
+config.js.old
+config.json.bak
+config.yaml.bak
+config.yml.bak
+settings.bak
+settings.old
+settings.backup
+configuration.bak
+configuration.old
+application.properties.bak
+application.yml.bak
+app.config.bak
+web.config.bak
+web.config.old
+nginx.conf.bak
+nginx.conf.old
+apache.conf.bak
+httpd.conf.bak
+.htaccess.bak
+.htaccess.old
+
+# ============================================
+# Environment File Backups
+# ============================================
+.env.bak
+.env.old
+.env.backup
+.env.orig
+.env~
+.env.swp
+.env.swo
+.env.save
+.env.sample
+.env.example
+.env.template
+.env.development.bak
+.env.production.bak
+.env.staging.bak
+.env.local.bak
+.env.test.bak
+env.bak
+env.old
+dotenv.bak
+dotenv.old
+
+# ============================================
+# Source Code Backups
+# ============================================
+source.zip
+source.tar.gz
+src.zip
+src.tar.gz
+code.zip
+code.tar.gz
+app.zip
+app.tar.gz
+application.zip
+application.tar.gz
+project.zip
+project.tar.gz
+website.zip
+website.tar.gz
+site.zip
+site.tar.gz
+www.zip
+www.tar.gz
+htdocs.zip
+htdocs.tar.gz
+
+# ============================================
+# CMS Specific Backups
+# ============================================
+# WordPress
+wp-config.php.bak
+wp-config.php.old
+wp-config.php.orig
+wp-config.php~
+wordpress.zip
+wordpress_backup.zip
+wordpress_backup.tar.gz
+wp-content.zip
+wp-content.tar.gz
+uploads.zip
+
+# Drupal
+sites/default/settings.php.bak
+sites/default/settings.php.old
+drupal.zip
+drupal_backup.zip
+
+# Joomla
+configuration.php.bak
+configuration.php.old
+joomla.zip
+joomla_backup.zip
+
+# Laravel
+.env.bak
+storage.zip
+storage.tar.gz
+vendor.zip
+
+# ============================================
+# Version Control Artifacts
+# ============================================
+.git
+.git.zip
+.git.tar.gz
+.git/config
+.git/HEAD
+.git/index
+.git/logs/HEAD
+.git/refs/heads/master
+.git/refs/heads/main
+.git/objects
+.gitignore
+.svn
+.svn.zip
+.svn.tar.gz
+.svn/wc.db
+.svn/entries
+.hg
+.hg.zip
+.hg.tar.gz
+.hgignore
+.bzr
+.bzr.zip
+CVS
+CVS.zip
+
+# ============================================
+# IDE & Editor Backups
+# ============================================
+.vscode.zip
+.vscode.tar.gz
+.idea.zip
+.idea.tar.gz
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+*.iml
+*.ipr
+*.iws
+
+# ============================================
+# Log File Backups
+# ============================================
+logs.zip
+logs.tar.gz
+log.zip
+log.tar.gz
+access.log.bak
+access.log.old
+access.log.1
+access.log.2
+error.log.bak
+error.log.old
+error.log.1
+error.log.2
+debug.log.bak
+debug.log.old
+app.log.bak
+app.log.old
+
+# ============================================
+# Modern Framework Backups
+# ============================================
+# Node.js
+node_modules.zip
+node_modules.tar.gz
+package.json.bak
+package-lock.json.bak
+yarn.lock.bak
+pnpm-lock.yaml.bak
+
+# Python
+venv.zip
+venv.tar.gz
+__pycache__.zip
+requirements.txt.bak
+pyproject.toml.bak
+poetry.lock.bak
+Pipfile.bak
+Pipfile.lock.bak
+
+# Ruby
+Gemfile.bak
+Gemfile.lock.bak
+vendor/bundle.zip
+
+# Go
+go.mod.bak
+go.sum.bak
+vendor.zip
+
+# Rust
+Cargo.toml.bak
+Cargo.lock.bak
+target.zip
+
+# ============================================
+# Build Artifacts
+# ============================================
+dist.zip
+dist.tar.gz
+build.zip
+build.tar.gz
+out.zip
+out.tar.gz
+target.zip
+target.tar.gz
+bin.zip
+bin.tar.gz
+release.zip
+release.tar.gz
+output.zip
+output.tar.gz
+
+# ============================================
+# Date-Based Backups
+# ============================================
+backup_2024.zip
+backup_2024.tar.gz
+backup_2025.zip
+backup_2025.tar.gz
+backup_2026.zip
+backup_2026.tar.gz
+backup_01.zip
+backup_02.zip
+backup_03.zip
+backup_04.zip
+backup_05.zip
+backup_06.zip
+backup_07.zip
+backup_08.zip
+backup_09.zip
+backup_10.zip
+backup_11.zip
+backup_12.zip
+backup_daily.zip
+backup_weekly.zip
+backup_monthly.zip
+backup_yearly.zip
+backup_$(date).zip
+backup-daily.tar.gz
+backup-weekly.tar.gz
+backup-monthly.tar.gz
+
+# ============================================
+# Cloud & Container Backups
+# ============================================
+# Kubernetes
+kubernetes.yaml.bak
+k8s.yaml.bak
+deployment.yaml.bak
+service.yaml.bak
+configmap.yaml.bak
+secret.yaml.bak
+helm-values.yaml.bak
+kustomization.yaml.bak
+
+# Docker
+docker-compose.yml.bak
+docker-compose.yaml.bak
+Dockerfile.bak
+dockerignore.bak
+
+# Terraform
+terraform.tfstate.backup
+terraform.tfvars.bak
+main.tf.bak
+variables.tf.bak
+
+# ============================================
+# Temporary & Swap Files
+# ============================================
+*.tmp
+*.temp
+*.bak
+*.bkp
+*.backup
+*.old
+*.orig
+*.save
+*.recover
+*~
+*.swp
+*.swo
+*.swn
+*#
+.#*
+\#*#
+._*
+.fuse_hidden*
+.nfs*
+.Trash-*
+.directory
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Archive Extensions
+# ============================================
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tbz2
+*.tar.xz
+*.txz
+*.tar.lz
+*.tar.lz4
+*.tar.zst
+*.7z
+*.rar
+*.gz
+*.bz2
+*.xz
+*.lz
+*.lz4
+*.zst
+*.z
+*.Z
+*.cab
+*.arj
+*.lzh
+*.ace
+*.dmg
+*.iso
+*.img
+*.vhd
+*.vmdk

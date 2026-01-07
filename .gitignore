@@ -1,0 +1,520 @@
+# ============================================
+# Enterprise Web Vulnerability Scanner v5.0.0
+# .gitignore - Production-grade ignore patterns
+# ============================================
+
+# ====================
+# Python
+# ====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ====================
+# Virtual Environment
+# ====================
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+poetry-env/
+
+# Poetry
+poetry.lock  # Uncomment if you want to track lock file
+
+# ====================
+# IDE & Editors
+# ====================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+*.un~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ====================
+# Operating System
+# ====================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ====================
+# Environment & Secrets
+# ====================
+.env
+.env.*
+!.env.example
+.envrc
+.secrets
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+secrets/
+.secrets/
+
+# ====================
+# Database
+# ====================
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+postgres-data/
+pgdata/
+mysql-data/
+
+# Database dumps
+*.sql
+*.dump
+*.backup
+
+# ====================
+# Cache & Session
+# ====================
+# Redis
+dump.rdb
+appendonly.aof
+redis-data/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+celerybeat-schedule.*
+
+# ====================
+# Logs & Output
+# ====================
+logs/
+*.log
+*.log.*
+log/
+output/
+scan_results/
+vulnerability_reports/
+reports/
+
+# Exception: Keep output directory structure
+!output/.gitkeep
+!output/reports/.gitkeep
+
+# ====================
+# Test Coverage
+# ====================
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest/
+test-results/
+junit.xml
+
+# ====================
+# Jupyter Notebook
+# ====================
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# ====================
+# Python Type Checkers
+# ====================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+pyrightconfig.json
+
+# Ruff (Modern Linter)
+.ruff_cache/
+.ruff/
+
+# ====================
+# Documentation Builds
+# ====================
+docs/_build/
+docs/build/
+site/
+_build/
+_static/
+_templates/
+
+# Sphinx
+docs/generated/
+
+# ====================
+# Docker
+# ====================
+# Keep docker files in repo for deployment
+# Only ignore runtime/local overrides
+docker-compose.override.yml
+docker-compose.local.yml
+*.dockerfile.local
+
+# Docker volumes
+docker-volumes/
+.dockerignore.local
+
+# ====================
+# Kubernetes
+# ====================
+*.kubeconfig
+kubeconfig
+.kube/
+k8s-secrets/
+kubernetes/secrets/
+
+# Helm
+*.tgz
+charts/*.lock
+
+# ====================
+# Terraform
+# ====================
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+*.auto.tfvars
+
+# ====================
+# Ansible
+# ====================
+*.retry
+ansible_facts/
+*.vault
+
+# ====================
+# CI/CD
+# ====================
+.github/workflows/*.local.yml
+.gitlab-ci.local.yml
+.circleci/local.yml
+
+# ====================
+# Monitoring & Metrics
+# ====================
+# Prometheus
+prometheus-data/
+*.tsdb
+
+# Grafana
+grafana-data/
+grafana.db
+
+# ====================
+# Node.js (for web GUI)
+# ====================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Dependency directories
+jspm_packages/
+
+# ====================
+# Temporary & Backup Files
+# ====================
+temp/
+tmp/
+*.tmp
+*.temp
+*.bak
+*.old
+*.backup
+*.orig
+*.rej
+*~
+*#
+.#*
+
+# ====================
+# Archive Files
+# ====================
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+
+# ====================
+# Security Scan Results
+# ====================
+# Bandit
+.bandit
+bandit-report.*
+
+# Safety
+safety-report.*
+
+# Semgrep
+.semgrep/
+semgrep-report.*
+
+# Trivy
+trivy-report.*
+
+# ====================
+# Local Development
+# ====================
+local/
+dev/
+development/
+sandbox/
+playground/
+.local/
+
+# Local configuration overrides
+config/local_config.json
+config/production_config.json
+config/*.local.json
+
+# Claude Code & AI Assistants
+.claude/
+.cursor/
+.aider*
+.continue/
+
+# MCP (Model Context Protocol) Servers
+.mcp/
+.mcp.json
+mcp_server_data/
+
+# ====================
+# Performance & Profiling
+# ====================
+*.prof
+*.lprof
+*.pyprof
+.profiling/
+profiling-results/
+
+# ====================
+# Vagrant
+# ====================
+.vagrant/
+*.box
+
+# ====================
+# OpenAPI / Swagger
+# ====================
+openapi-generator/
+swagger-codegen/
+
+# ====================
+# SSL/TLS Certificates
+# ====================
+*.cert
+*.ca-bundle
+ssl/
+certs/
+certificates/
+
+# Exception: Keep example certs
+!ssl/example/
+!certs/example/
+
+# ====================
+# Backup & Migrations
+# ====================
+migrations/versions/*.pyc
+backups/
+snapshots/
+
+# Alembic
+alembic.ini.local
+
+# ====================
+# Cloud Provider Configs
+# ====================
+# AWS
+.aws/
+*.pem
+
+# GCP
+gcp-credentials.json
+*.json.gcp
+
+# Azure
+.azure/
+
+# ====================
+# Lock Files (Optional)
+# ====================
+# Uncomment to ignore all lock files
+# package-lock.json
+# yarn.lock
+# Pipfile.lock
+# uv.lock  # Modern Python package manager
+
+# ====================
+# Custom Project Files
+# ====================
+# Scanner specific
+wordlists/*.custom
+wordlists/private/
+
+# API keys and tokens
+api-keys.txt
+tokens.txt
+credentials.json
+auth.json
+
+# Test data with sensitive info
+test-data/sensitive/
+fixtures/private/
+
+# AI & ML Model Cache
+.ai_cache/
+.gemini_cache/
+.openai_cache/
+.anthropic_cache/
+model_cache/
+*.model.cache
+.transformers_cache/
+
+# Browser Automation & Testing
+.selenium/
+selenium-cache/
+playwright/
+.playwright/
+playwright-cache/
+chromedriver*
+geckodriver*
+msedgedriver*
+
+# Network Scanning & Packet Capture
+*.pcap
+*.cap
+*.pcapng
+scans/
+packets/
+
+# Monitoring & Telemetry Cache
+.otel/
+.opentelemetry/
+metrics-cache/
+
+# PDF Generation Cache
+.weasyprint-cache/
+weasyprint-fonts/
+
+# ====================
+# Build Artifacts
+# ====================
+*.whl
+*.tar.gz
+*.rpm
+*.deb
+
+# ====================
+# macOS Specific
+# ====================
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# ====================
+# END OF .gitignore
+# ====================

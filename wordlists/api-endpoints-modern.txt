@@ -1,0 +1,524 @@
+# API Endpoints 2025/2026 - Modern Security Discovery
+# SecLists-2025 Compatible | Updated: January 2026
+# https://github.com/halilberkayy/SENTINEL
+
+# ============================================
+# AI/ML & LLM Endpoints (NEW 2025/2026)
+# ============================================
+api/ai
+api/ml
+api/llm
+api/chat
+api/completions
+api/v1/chat/completions
+api/v1/completions
+api/v1/embeddings
+api/v1/models
+api/v1/images/generations
+api/assistant
+api/agents
+api/copilot
+api/predict
+api/inference
+api/train
+api/models
+api/embeddings
+api/vectors
+api/rag
+api/langchain
+api/openai
+api/anthropic
+api/gemini
+api/claude
+api/gpt
+ml/models
+ml/predictions
+ml/training
+ai/chat
+ai/generate
+ai/analyze
+llm/prompt
+llm/complete
+ai/v1/chat
+ai/v2/completions
+
+# ============================================
+# Cloud Provider Metadata & Internal (Critical)
+# ============================================
+# AWS
+169.254.169.254
+169.254.169.254/latest/meta-data
+169.254.169.254/latest/meta-data/iam/security-credentials
+169.254.169.254/latest/user-data
+169.254.169.254/latest/dynamic/instance-identity/document
+# GCP
+metadata.google.internal
+metadata.google.internal/computeMetadata/v1
+metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token
+# Azure
+169.254.169.254/metadata/instance
+169.254.169.254/metadata/identity/oauth2/token
+# Alibaba
+100.100.100.200/latest/meta-data
+# DigitalOcean
+169.254.169.254/metadata/v1
+
+# ============================================
+# Kubernetes & Container Orchestration
+# ============================================
+api/v1/namespaces
+api/v1/pods
+api/v1/services
+api/v1/secrets
+api/v1/configmaps
+api/v1/nodes
+apis/apps/v1/deployments
+apis/apps/v1/statefulsets
+apis/apps/v1/daemonsets
+apis/batch/v1/jobs
+apis/batch/v1/cronjobs
+apis/networking.k8s.io/v1/ingresses
+api/v1/serviceaccounts
+apis/rbac.authorization.k8s.io/v1/roles
+apis/rbac.authorization.k8s.io/v1/clusterroles
+metrics
+healthz
+ready
+livez
+readyz
+version
+
+# ============================================
+# Service Mesh & API Gateway
+# ============================================
+kong
+kong/admin
+kong/status
+envoy/admin
+envoy/stats
+istio
+istio/metrics
+traefik/api
+traefik/dashboard
+nginx/status
+haproxy/stats
+apisix/admin
+ambassador/admin
+
+# ============================================
+# GraphQL Advanced (2025)
+# ============================================
+graphql
+graphql/v1
+graphql/v2
+graphiql
+graphql/playground
+graphql/explorer
+graphql/console
+graphql/subscriptions
+graphql/ws
+altair
+voyager
+graphql-playground
+apollo/graphql
+
+# ============================================
+# Modern Auth & Identity (2025)
+# ============================================
+# OIDC / OAuth 2.0 / OAuth 2.1
+.well-known/openid-configuration
+.well-known/oauth-authorization-server
+.well-known/jwks.json
+.well-known/webfinger
+oauth2/authorize
+oauth2/token
+oauth2/revoke
+oauth2/introspect
+oauth2/device
+oauth2/par
+oauth2/pushed-authorization-requests
+oidc/callback
+oidc/userinfo
+oidc/logout
+# Passkeys / WebAuthn
+webauthn/register
+webauthn/authenticate
+webauthn/challenge
+passkeys/register
+passkeys/login
+fido2/register
+fido2/authenticate
+# SSO
+sso/login
+sso/logout
+sso/callback
+saml/login
+saml/logout
+saml/metadata
+saml/acs
+saml/slo
+
+# ============================================
+# API Versioning & Discovery
+# ============================================
+api/v1
+api/v2
+api/v3
+api/v4
+api/v5
+api/latest
+api/stable
+api/beta
+api/alpha
+api/preview
+api/experimental
+api/internal
+api/private
+api/public
+
+# ============================================
+# Developer & Debug Endpoints
+# ============================================
+debug
+debug/pprof
+debug/vars
+debug/requests
+_debug
+_profiler
+_trace
+_console
+actuator
+actuator/health
+actuator/info
+actuator/env
+actuator/beans
+actuator/mappings
+actuator/configprops
+actuator/metrics
+actuator/prometheus
+actuator/heapdump
+actuator/threaddump
+actuator/loggers
+actuator/httptrace
+actuator/scheduledtasks
+actuator/caches
+actuator/flyway
+actuator/conditions
+actuator/shutdown
+_status
+_metrics
+_health
+elmah.axd
+trace.axd
+phpinfo.php
+server-status
+server-info
+jmx-console
+admin-console
+
+# ============================================
+# Serverless & FaaS
+# ============================================
+functions
+function
+lambda
+invoke
+trigger
+serverless
+faas
+cloud-functions
+netlify/functions
+vercel/api
+edge/functions
+workers
+
+# ============================================
+# Realtime & Event Streaming
+# ============================================
+ws
+wss
+websocket
+websockets
+socket.io
+sockjs
+events
+sse
+server-sent-events
+stream
+streaming
+realtime
+live
+pubsub
+subscribe
+publish
+
+# ============================================
+# Modern Backend Frameworks
+# ============================================
+# Next.js
+_next
+_next/data
+_next/static
+api/auth
+api/auth/callback
+api/auth/signin
+api/auth/signout
+api/auth/session
+api/auth/csrf
+api/auth/providers
+# Nuxt.js
+_nuxt
+__nuxt
+# Remix
+_data
+# SvelteKit
+_app
+# Astro
+_astro
+# Strapi CMS
+admin
+admin/init
+content-manager
+content-type-builder
+upload
+users-permissions
+# Laravel
+telescope
+telescope/requests
+telescope/exceptions
+telescope/logs
+telescope/dumps
+horizon
+horizon/dashboard
+# Django
+admin
+admin/login
+api-auth
+rest-auth
+dj-rest-auth
+silk
+debug-toolbar
+# FastAPI
+docs
+redoc
+openapi.json
+api/openapi.json
+# Rails
+rails/info
+rails/info/routes
+rails/mailers
+sidekiq
+letter_opener
+
+# ============================================
+# CI/CD & DevOps Endpoints
+# ============================================
+jenkins
+jenkins/script
+jenkins/manage
+jenkins/api
+jenkins/api/json
+gitlab
+gitlab/api
+gitlab-ci
+github/webhooks
+github/api
+bitbucket/webhooks
+circleci
+travis
+codebuild
+buildkite
+argo/api
+argo-cd
+argocd/api
+tekton
+drone
+concourse
+spinnaker
+
+# ============================================
+# Database Admin & Management
+# ============================================
+phpmyadmin
+pma
+adminer
+pgadmin
+mongoadmin
+mongodb
+redis-commander
+redis-insight
+elasticsearch
+elasticsearch/_cluster/health
+elasticsearch/_cat/indices
+kibana
+grafana
+prometheus
+prometheus/api/v1/query
+prometheus/api/v1/label
+prometheus/targets
+influxdb
+
+# ============================================
+# Feature Flags & Experimentation
+# ============================================
+features
+feature-flags
+flags
+experiments
+ab-test
+variants
+toggles
+launchdarkly
+optimizely
+split
+unleash
+flagsmith
+
+# ============================================
+# Payment & Financial APIs
+# ============================================
+payments
+payment
+checkout
+stripe/webhook
+stripe/api
+paypal/webhook
+braintree/webhook
+square/webhook
+adyen/webhook
+billing
+subscription
+subscriptions
+invoice
+invoices
+transaction
+transactions
+
+# ============================================
+# Notification & Messaging
+# ============================================
+notifications
+notification
+push
+push-notifications
+fcm
+apns
+webpush
+vapid
+email
+mail
+sms
+twilio/webhook
+sendgrid/webhook
+mailgun/webhook
+ses/webhook
+
+# ============================================
+# Storage & File Management
+# ============================================
+storage
+files
+file
+upload
+uploads
+download
+downloads
+media
+assets
+s3
+minio
+presigned
+signed-url
+blob
+blobs
+attachments
+documents
+
+# ============================================
+# Search & Discovery
+# ============================================
+search
+search/suggest
+search/autocomplete
+search/advanced
+algolia
+elasticsearch
+opensearch
+typesense
+meilisearch
+solr
+lucene
+
+# ============================================
+# CRM & Commerce
+# ============================================
+products
+product
+categories
+category
+cart
+carts
+orders
+order
+customers
+customer
+wishlist
+reviews
+inventory
+stock
+shipping
+fulfillment
+returns
+
+# ============================================
+# Analytics & Tracking
+# ============================================
+analytics
+analytics/track
+analytics/identify
+analytics/page
+tracking
+track
+events
+segment
+amplitude
+mixpanel
+heap
+fullstory
+hotjar
+matomo
+plausible
+
+# ============================================
+# Compliance & Security
+# ============================================
+.well-known/security.txt
+security.txt
+.well-known/dnt-policy.txt
+gdpr
+privacy
+consent
+data-subject
+data-export
+data-delete
+audit
+audit-log
+compliance
+
+# ============================================
+# Internal & Legacy
+# ============================================
+internal
+internal/api
+internal/admin
+internal/debug
+private
+private/api
+legacy
+legacy/api
+v0
+deprecated
+old
+old-api
+backup
+backups

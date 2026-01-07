@@ -1,0 +1,676 @@
+# Web Content Discovery 2025/2026 - Modern Directories & Files
+# SecLists-2025 Compatible | Updated: January 2026
+# https://github.com/halilberkayy/SENTINEL
+
+# ============================================
+# AI/ML Infrastructure (NEW 2025/2026)
+# ============================================
+.ml
+.ai
+.model
+.models
+.embeddings
+.vectors
+.rag
+.llm
+.openai
+.anthropic
+.gemini
+.huggingface
+notebooks
+jupyter
+jupyterlab
+colab
+mlflow
+kubeflow
+tensorboard
+wandb
+weights
+checkpoints
+datasets
+training
+inference
+prompts
+prompt-templates
+
+# ============================================
+# Modern JavaScript Frameworks (2025)
+# ============================================
+# Next.js 14+
+.next
+_next/static
+_next/data
+_next/image
+next.config.js
+next.config.mjs
+middleware.ts
+middleware.js
+
+# Nuxt 3.x
+.nuxt
+.output
+nuxt.config.ts
+nuxt.config.js
+
+# Remix
+.cache
+build
+app/routes
+
+# Astro
+.astro
+astro.config.mjs
+dist/assets
+
+# SvelteKit
+.svelte-kit
+vite.config.js
+svelte.config.js
+
+# Vite Common
+vite.config.ts
+vite.config.js
+.vite
+dist
+
+# Turbopack
+.turbo
+turbo.json
+
+# Bun Runtime
+bun.lockb
+bunfig.toml
+
+# Deno
+deno.json
+deno.lock
+import_map.json
+
+# ============================================
+# Headless CMS & API-First (2025)
+# ============================================
+# Strapi 5.x
+.strapi
+admin/init
+content-type-builder
+content-manager
+upload
+
+# Sanity
+.sanity
+sanity.config.ts
+
+# Contentful
+.contentful
+
+# Prismic
+.prismic
+
+# Payload CMS
+.payload
+payload.config.ts
+
+# Directus
+.directus
+
+# Ghost
+ghost
+
+# ============================================
+# Authentication & Identity (2025)
+# ============================================
+# Clerk
+.clerk
+api/clerk
+
+# Auth0
+.auth0
+auth0-callback
+
+# NextAuth.js / Auth.js
+api/auth
+api/auth/providers
+api/auth/session
+api/auth/signin
+api/auth/signout
+api/auth/callback
+
+# Supabase Auth
+.supabase
+supabase
+
+# Firebase Auth
+.firebase
+__/auth
+__/firebase
+
+# Keycloak
+auth/realms
+
+# Passkeys/WebAuthn
+.well-known/webauthn
+webauthn
+
+# ============================================
+# Edge & Serverless (2025)
+# ============================================
+# Cloudflare
+_cf
+.cloudflare
+wrangler.toml
+_worker.js
+
+# Vercel
+.vercel
+vercel.json
+api
+_api
+
+# Netlify
+.netlify
+netlify.toml
+netlify/functions
+
+# AWS Lambda
+.aws-sam
+samconfig.toml
+template.yaml
+.serverless
+
+# Azure Functions
+.azure
+host.json
+local.settings.json
+
+# ============================================
+# Container & Orchestration (2025)
+# ============================================
+# Docker
+Dockerfile
+dockerfile
+docker-compose.yml
+docker-compose.yaml
+compose.yml
+compose.yaml
+.dockerignore
+.docker
+
+# Kubernetes
+kubernetes
+k8s
+kustomization.yaml
+helm
+charts
+
+# DevSpace
+devspace.yaml
+
+# Tilt
+Tiltfile
+
+# Skaffold
+skaffold.yaml
+
+# Podman
+podman-compose.yml
+
+# ============================================
+# Infrastructure as Code (2025)
+# ============================================
+# Terraform
+.terraform
+terraform.tfstate
+terraform.tfvars
+main.tf
+variables.tf
+outputs.tf
+backend.tf
+
+# Pulumi
+Pulumi.yaml
+Pulumi.dev.yaml
+.pulumi
+
+# OpenTofu
+.opentofu
+
+# AWS CDK
+cdk.json
+cdk.out
+
+# SST (Serverless Stack)
+sst.config.ts
+.sst
+
+# ============================================
+# CI/CD Pipelines (2025)
+# ============================================
+# GitHub Actions
+.github/workflows
+.github/actions
+.github/CODEOWNERS
+
+# GitLab CI
+.gitlab-ci.yml
+.gitlab
+
+# CircleCI
+.circleci/config.yml
+
+# Jenkins
+Jenkinsfile
+jenkins
+
+# Azure Pipelines
+azure-pipelines.yml
+
+# Bitbucket
+bitbucket-pipelines.yml
+
+# Drone
+.drone.yml
+
+# Argo
+argo-workflows
+argocd
+
+# Tekton
+tekton
+
+# Buildkite
+.buildkite
+
+# ============================================
+# Package Managers & Lock Files (2025)
+# ============================================
+# Node.js
+package.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+.npmrc
+.yarnrc.yml
+
+# Python
+pyproject.toml
+poetry.lock
+Pipfile
+Pipfile.lock
+requirements.txt
+setup.py
+setup.cfg
+uv.lock
+
+# Go
+go.mod
+go.sum
+
+# Rust
+Cargo.toml
+Cargo.lock
+
+# Ruby
+Gemfile
+Gemfile.lock
+.ruby-version
+
+# PHP
+composer.json
+composer.lock
+
+# .NET
+*.csproj
+*.sln
+nuget.config
+packages.config
+
+# ============================================
+# Environment & Secrets (SENSITIVE)
+# ============================================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.production
+.env.production.local
+.env.staging
+.env.test
+.env.example
+.env.sample
+.env.template
+.env.bak
+.env.backup
+.env.old
+.envrc
+.secrets
+secrets
+secrets.json
+secrets.yaml
+secrets.yml
+secret.json
+secret.yaml
+credentials
+credentials.json
+credentials.yml
+credentials.yaml
+service-account.json
+serviceaccount.json
+google-credentials.json
+aws-credentials
+aws_credentials
+.aws
+.gcp
+.azure
+key.pem
+key.json
+private.key
+private.pem
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+.ssh
+known_hosts
+authorized_keys
+vault-token
+vault.json
+.vault
+hashicorp-vault
+keystore
+keystore.jks
+truststore
+truststore.jks
+
+# ============================================
+# Backup & Archive Files (2025)
+# ============================================
+backup
+backups
+backup.sql
+backup.tar
+backup.tar.gz
+backup.zip
+backup.7z
+backup.bak
+db_backup.sql
+database_backup.sql
+site_backup.zip
+www_backup.tar.gz
+full_backup.tar.gz
+data_backup.sql
+backup_db.sql
+backup_data.sql
+dump.sql
+dump.tar.gz
+dump.rdb
+mysqldump.sql
+pg_dump.sql
+mongodump
+elasticsearch_backup
+redis_backup.rdb
+.bak
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*~
+*.swp
+*.swo
+
+# ============================================
+# Source Code Management (2025)
+# ============================================
+.git
+.git/config
+.git/HEAD
+.git/index
+.git/logs
+.git/objects
+.gitignore
+.gitattributes
+.gitmodules
+.github
+.gitlab
+.svn
+.svn/entries
+.hg
+.hgignore
+.bzr
+.fossil
+
+# ============================================
+# IDE & Editor (2025)
+# ============================================
+.vscode
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/tasks.json
+.idea
+.idea/workspace.xml
+.idea/modules.xml
+*.iml
+.project
+.classpath
+.settings
+*.code-workspace
+.cursor
+.windsurf
+
+# ============================================
+# Debug & Development (2025)
+# ============================================
+debug
+debug.log
+debug.txt
+_debug
+.debug
+error.log
+error_log
+errors.log
+access.log
+access_log
+logs
+log
+*.log
+.logs
+debug_toolbar
+php_error.log
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+lerna-debug.log
+.pnpm-debug.log
+
+# ============================================
+# Build & Dist (2025)
+# ============================================
+dist
+build
+out
+output
+target
+public
+static
+assets
+bundle
+bundles
+release
+releases
+bin
+obj
+lib
+libs
+vendor
+vendors
+node_modules
+bower_components
+.cache
+.parcel-cache
+.webpack
+.rollup
+.esbuild
+.swc
+
+# ============================================
+# Testing & Coverage (2025)
+# ============================================
+test
+tests
+spec
+specs
+__tests__
+__mocks__
+cypress
+playwright
+.nyc_output
+coverage
+coverage.xml
+coverage.json
+.coverage
+htmlcov
+pytest_cache
+.pytest_cache
+jest.config.js
+vitest.config.ts
+playwright.config.ts
+cypress.config.ts
+
+# ============================================
+# Documentation (2025)
+# ============================================
+docs
+doc
+documentation
+wiki
+api-docs
+apidocs
+swagger
+openapi
+redoc
+graphql-playground
+graphiql
+README.md
+README.txt
+README
+CHANGELOG.md
+CHANGELOG
+HISTORY.md
+CONTRIBUTING.md
+LICENSE
+LICENSE.md
+LICENSE.txt
+SECURITY.md
+CODE_OF_CONDUCT.md
+
+# ============================================
+# Admin & Management (2025)
+# ============================================
+admin
+administrator
+manage
+management
+dashboard
+panel
+console
+control
+controlpanel
+cpanel
+wp-admin
+wp-login.php
+admin.php
+login.php
+administrator/index.php
+backend
+backoffice
+portal
+staff
+internal
+intranet
+superadmin
+sysadmin
+webmaster
+
+# ============================================
+# API & Endpoints (2025)
+# ============================================
+api
+api/v1
+api/v2
+api/v3
+rest
+restful
+graphql
+graphql/playground
+grpc
+websocket
+ws
+sse
+events
+webhooks
+webhook
+callback
+
+# ============================================
+# Health & Monitoring (2025)
+# ============================================
+health
+healthz
+healthcheck
+ready
+readyz
+live
+livez
+ping
+status
+metrics
+prometheus
+grafana
+actuator
+actuator/health
+actuator/info
+actuator/env
+actuator/metrics
+actuator/prometheus
+_status
+__status
+__health
+
+# ============================================
+# Security Files (2025)
+# ============================================
+.well-known
+.well-known/security.txt
+.well-known/openid-configuration
+.well-known/jwks.json
+.well-known/webfinger
+.well-known/apple-app-site-association
+.well-known/assetlinks.json
+.well-known/change-password
+.well-known/pki-validation
+.well-known/acme-challenge
+security.txt
+robots.txt
+humans.txt
+ads.txt
+sitemap.xml
+sitemap.xml.gz
+sitemap_index.xml
+crossdomain.xml
+clientaccesspolicy.xml
+
+# ============================================
+# Web Server Config (2025)
+# ============================================
+.htaccess
+.htpasswd
+web.config
+nginx.conf
+apache.conf
+httpd.conf
+Caddyfile
+traefik.yml
+haproxy.cfg

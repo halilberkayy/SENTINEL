@@ -1,0 +1,231 @@
+name: "Web Vulnerability Scanner"
+description: "Run DAST security scans in CI/CD pipelines with SARIF output for GitHub Security integration"
+author: "Web Vulnerability Scanner Team"
+
+branding:
+  icon: "shield"
+  color: "red"
+
+inputs:
+  target_url:
+    description: "Target URL to scan"
+    required: true
+
+  modules:
+    description: 'Comma-separated list of modules to run (e.g., xss,sqli,ssrf). Use "all" for all modules'
+    required: false
+    default: "all"
+
+  severity_threshold:
+    description: "Fail the scan if vulnerabilities at or above this severity are found (critical, high, medium, low, info)"
+    required: false
+    default: "high"
+
+  output_format:
+    description: "Output format (sarif, json, html, txt)"
+    required: false
+    default: "sarif"
+
+  output_file:
+    description: "Path to save the scan results"
+    required: false
+    default: "scan_results.sarif"
+
+  timeout:
+    description: "Scan timeout in seconds"
+    required: false
+    default: "600"
+
+  auth_type:
+    description: "Authentication type (basic, form, jwt, cookie, api_key)"
+    required: false
+
+  auth_credentials:
+    description: "JSON string with authentication credentials"
+    required: false
+
+  rate_limit:
+    description: "Requests per second limit"
+    required: false
+    default: "10"
+
+  fail_on_vulnerability:
+    description: "Whether to fail the workflow if vulnerabilities are found"
+    required: false
+    default: "true"
+
+  upload_sarif:
+    description: "Upload SARIF results to GitHub Security"
+    required: false
+    default: "true"
+
+outputs:
+  vulnerability_count:
+    description: "Total number of vulnerabilities found"
+    value: ${{ steps.scan.outputs.vulnerability_count }}
+
+  critical_count:
+    description: "Number of critical severity vulnerabilities"
+    value: ${{ steps.scan.outputs.critical_count }}
+
+  high_count:
+    description: "Number of high severity vulnerabilities"
+    value: ${{ steps.scan.outputs.high_count }}
+
+  medium_count:
+    description: "Number of medium severity vulnerabilities"
+    value: ${{ steps.scan.outputs.medium_count }}
+
+  low_count:
+    description: "Number of low severity vulnerabilities"
+    value: ${{ steps.scan.outputs.low_count }}
+
+  scan_passed:
+    description: "Whether the scan passed the severity threshold"
+    value: ${{ steps.scan.outputs.scan_passed }}
+
+  sarif_file:
+    description: "Path to the SARIF output file"
+    value: ${{ steps.scan.outputs.sarif_file }}
+
+  report_url:
+    description: "URL to the full HTML report (if generated)"
+    value: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-wvs-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-wvs-
+
+    - name: Install scanner
+      shell: bash
+      run: |
+        pip install --quiet --upgrade pip
+        pip install --quiet aiohttp beautifulsoup4 lxml colorama
+
+    - name: Run vulnerability scan
+      id: scan
+      shell: bash
+      env:
+        TARGET_URL: ${{ inputs.target_url }}
+        MODULES: ${{ inputs.modules }}
+        SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
+        OUTPUT_FORMAT: ${{ inputs.output_format }}
+        OUTPUT_FILE: ${{ inputs.output_file }}
+        TIMEOUT: ${{ inputs.timeout }}
+        AUTH_TYPE: ${{ inputs.auth_type }}
+        AUTH_CREDENTIALS: ${{ inputs.auth_credentials }}
+        RATE_LIMIT: ${{ inputs.rate_limit }}
+      run: |
+        # Build command arguments
+        ARGS="--url $TARGET_URL"
+        ARGS="$ARGS --modules $MODULES"
+        ARGS="$ARGS --output $OUTPUT_FORMAT"
+        ARGS="$ARGS --output-file $OUTPUT_FILE"
+        ARGS="$ARGS --timeout $TIMEOUT"
+        ARGS="$ARGS --rate-limit $RATE_LIMIT"
+
+        if [ -n "$AUTH_TYPE" ]; then
+          ARGS="$ARGS --auth-type $AUTH_TYPE"
+        fi
+
+        # Run scanner
+        echo "🔍 Starting security scan on $TARGET_URL"
+        echo "📋 Modules: $MODULES"
+        echo "⚠️ Severity Threshold: $SEVERITY_THRESHOLD"
+
+        python3 scanner.py $ARGS --json-summary > scan_summary.json 2>&1 || true
+
+        # Parse results
+        if [ -f scan_summary.json ]; then
+          CRITICAL=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('severity_counts',{}).get('critical',0))")
+          HIGH=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('severity_counts',{}).get('high',0))")
+          MEDIUM=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('severity_counts',{}).get('medium',0))")
+          LOW=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('severity_counts',{}).get('low',0))")
+          TOTAL=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('total_vulnerabilities',0))")
+        else
+          CRITICAL=0
+          HIGH=0
+          MEDIUM=0
+          LOW=0
+          TOTAL=0
+        fi
+
+        echo "critical_count=$CRITICAL" >> $GITHUB_OUTPUT
+        echo "high_count=$HIGH" >> $GITHUB_OUTPUT
+        echo "medium_count=$MEDIUM" >> $GITHUB_OUTPUT
+        echo "low_count=$LOW" >> $GITHUB_OUTPUT
+        echo "vulnerability_count=$TOTAL" >> $GITHUB_OUTPUT
+        echo "sarif_file=$OUTPUT_FILE" >> $GITHUB_OUTPUT
+
+        # Determine pass/fail based on threshold
+        PASSED=true
+        case $SEVERITY_THRESHOLD in
+          critical)
+            [ "$CRITICAL" -gt 0 ] && PASSED=false
+            ;;
+          high)
+            [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ] && PASSED=false
+            ;;
+          medium)
+            [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ] || [ "$MEDIUM" -gt 0 ] && PASSED=false
+            ;;
+          low)
+            [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ] || [ "$MEDIUM" -gt 0 ] || [ "$LOW" -gt 0 ] && PASSED=false
+            ;;
+        esac
+
+        echo "scan_passed=$PASSED" >> $GITHUB_OUTPUT
+
+        # Print summary
+        echo ""
+        echo "📊 Scan Results Summary"
+        echo "========================"
+        echo "🔴 Critical: $CRITICAL"
+        echo "🟠 High: $HIGH"
+        echo "🟡 Medium: $MEDIUM"
+        echo "🔵 Low: $LOW"
+        echo "📈 Total: $TOTAL"
+        echo ""
+
+        if [ "$PASSED" = "true" ]; then
+          echo "✅ Scan passed severity threshold: $SEVERITY_THRESHOLD"
+        else
+          echo "❌ Scan failed severity threshold: $SEVERITY_THRESHOLD"
+        fi
+
+    - name: Upload SARIF to GitHub Security
+      if: ${{ inputs.upload_sarif == 'true' && inputs.output_format == 'sarif' }}
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: ${{ inputs.output_file }}
+        category: web-vulnerability-scanner
+
+    - name: Upload scan artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: vulnerability-scan-results
+        path: |
+          ${{ inputs.output_file }}
+          scan_summary.json
+        retention-days: 30
+
+    - name: Check threshold and fail if needed
+      if: ${{ inputs.fail_on_vulnerability == 'true' }}
+      shell: bash
+      run: |
+        if [ "${{ steps.scan.outputs.scan_passed }}" = "false" ]; then
+          echo "::error::Security scan failed! Vulnerabilities found above threshold."
+          exit 1
+        fi
