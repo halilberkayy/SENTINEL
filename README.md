@@ -13,6 +13,7 @@ A production-ready web vulnerability scanner with 48 security modules and full O
 
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Features](#features)
 - [Quick Start](#quick-start)
   - [Docker Installation](#docker-installation)
@@ -27,6 +28,20 @@ A production-ready web vulnerability scanner with 48 security modules and full O
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
+
+---
+
+## Screenshots
+
+### Web Interface
+
+![Web Interface](docs/images/web-interface.png)
+*Modern web dashboard with real-time scanning progress and interactive reporting*
+
+### CLI Scanner
+
+![CLI Scanner](docs/images/cli-scan.png)
+*Command-line interface with detailed vulnerability detection and color-coded output*
 
 ---
 
@@ -103,6 +118,8 @@ python web_app.py
 
 ### Web Interface
 
+![Web Interface Screenshot](docs/images/web-interface.png)
+
 1. Navigate to `http://localhost:8000`
 2. Enter target URL
 3. Select scan modules or use "All Modules"
@@ -111,6 +128,8 @@ python web_app.py
 6. Download reports in preferred format
 
 ### CLI Examples
+
+![CLI Scanner Screenshot](docs/images/cli-scan.png)
 
 **Basic Scans**
 ```bash
