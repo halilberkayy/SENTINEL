@@ -1,154 +1,233 @@
-# SENTINEL - Enterprise Security Assessment Platform
+# SENTINEL
 
-**Version 5.0.0 | 48 Security Modules | OWASP Top 10 2025 Compliant**
+**Enterprise Security Assessment Platform v5.0.0**
+
+A production-ready web vulnerability scanner with 48 security modules and full OWASP Top 10 2025 coverage. Built for professional penetration testing, bug bounty hunting, and security research.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-5.0.0-red.svg)]()
+[![CI](https://github.com/halilberkayy/SENTINEL/workflows/CI/badge.svg)](https://github.com/halilberkayy/SENTINEL/actions)
 
 ---
 
-## Overview
+## Table of Contents
 
-SENTINEL is an enterprise-grade web vulnerability scanner designed for professional penetration testing. It integrates internal scanning modules with external security tools to provide comprehensive security assessments.
+- [Features](#features)
+- [Quick Start](#quick-start)
+  - [Docker Installation](#docker-installation)
+  - [Local Installation](#local-installation)
+- [Usage](#usage)
+  - [Web Interface](#web-interface)
+  - [CLI Examples](#cli-examples)
+- [Security Modules](#security-modules)
+- [Architecture](#architecture)
+- [Documentation](#documentation)
+- [Output Formats](#output-formats)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
-### Key Features
+---
 
-- **48 Active Scanning Modules** - Complete OWASP Top 10 2025 coverage
-- **External Tool Integration** - Nmap, Nikto, Gobuster, John the Ripper, Hashcat
-- **Custom Wordlist Mining** - Target-specific payload generation
-- **Attack Chain Correlation** - Automatic vulnerability linking and impact analysis
-- **AI-Powered Reporting** - Technical and executive summaries via Google Gemini
+## Features
+
+**Core Capabilities**
+- 48 active scanning modules with OWASP Top 10 2025 compliance
+- External tool integration (Nmap, Nikto, Gobuster, John, Hashcat)
+- Custom wordlist mining with target-specific payload generation
+- Attack chain correlation and automatic vulnerability linking
+- Multi-format reporting (JSON, HTML, Markdown, SARIF, Nuclei)
+
+**Advanced Features**
+- AI-powered technical and executive reporting via Google Gemini
+- Authenticated scanning with session management
+- WebSocket, GraphQL, gRPC protocol support
+- CVSS v3.1 scoring with automatic severity calculation
+- Docker deployment with full orchestration
+
+**Performance**
+- Async architecture with configurable concurrency
+- Redis caching for improved scan performance
+- Rate limiting and WAF evasion capabilities
+- Distributed scanning support via Celery
 
 ---
 
 ## Quick Start
 
-### Installation
+### Docker Installation
+
+Fastest way to get started:
 
 ```bash
 # Clone repository
 git clone https://github.com/halilberkayy/SENTINEL.git
 cd SENTINEL
 
-# Install external tools (optional)
-brew install nmap nikto gobuster john hashcat  # macOS
-apt install nmap nikto dirb john hashcat      # Linux
+# Start with Docker Compose
+docker-compose -f docker/docker-compose.yml up -d
 
-# Install Python dependencies
-poetry install
-
-# Start web interface
-python web_app.py
-
-# Access at http://localhost:8000
+# Access web interface
+open http://localhost:8000
 ```
 
-### CLI Usage
+### Local Installation
+
+For development or custom deployments:
 
 ```bash
-# Comprehensive scan
+# Install dependencies
+poetry install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
+
+# Initialize database
+alembic upgrade head
+
+# Start services
+python web_app.py
+```
+
+**System Requirements**
+- Python 3.10+
+- 4GB RAM minimum (8GB recommended)
+- PostgreSQL 13+ (optional, SQLite works for development)
+- Redis 6+ (optional, for caching)
+
+---
+
+## Usage
+
+### Web Interface
+
+1. Navigate to `http://localhost:8000`
+2. Enter target URL
+3. Select scan modules or use "All Modules"
+4. Configure authentication (if needed)
+5. Start scan and monitor real-time progress
+6. Download reports in preferred format
+
+### CLI Examples
+
+**Basic Scans**
+```bash
+# Quick vulnerability scan
+poetry run scanner -u https://example.com
+
+# Comprehensive scan with all modules
 poetry run scanner -u https://example.com --modules all
 
-# External tools only
-poetry run scanner -u https://example.com -m nmap_scanner,nikto_scanner,gobuster_scanner
+# Specific module scan
+poetry run scanner -u https://example.com -m xss_scanner,sqli_scanner
+```
 
-# Fast reconnaissance
-poetry run scanner -u https://example.com -m recon_scanner,port_scanner,directory_scanner
+**Advanced Scans**
+```bash
+# Authenticated scan with cookie
+poetry run scanner -u https://example.com \
+  --auth-type cookie \
+  --auth-cookie "session=abc123"
+
+# High concurrency scan
+poetry run scanner -u https://example.com \
+  --modules all \
+  --rate-limit 50 \
+  --timeout 60
+
+# Export to SARIF for GitHub Security
+poetry run scanner -u https://example.com \
+  --output sarif \
+  --output-file results.sarif
+```
+
+**External Tool Integration**
+```bash
+# Install external tools first
+brew install nmap nikto gobuster john hashcat  # macOS
+apt install nmap nikto dirb john hashcat       # Linux
+
+# Run external tools only
+poetry run scanner -u https://example.com \
+  -m nmap_scanner,nikto_scanner,gobuster_scanner
 ```
 
 ---
 
-## Documentation
+## Security Modules
 
-| Document | Description |
-|----------|-------------|
-| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Production deployment instructions |
-| [docs/EXTERNAL_TOOLS.md](docs/EXTERNAL_TOOLS.md) | External tool integration guide |
-| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | REST API documentation |
-| [docs/PLUGIN_DEVELOPMENT.md](docs/PLUGIN_DEVELOPMENT.md) | Plugin development guide |
+### Critical Risk Modules
 
----
+| Module | Description | Payload Count |
+|--------|-------------|---------------|
+| XSS Scanner | Cross-Site Scripting (Reflected, Stored, DOM) | 200+ |
+| SQL Injection | Database fingerprinting and injection | 150+ |
+| Command Injection | OS command injection and SSTI | 100+ |
+| LFI/RFI Scanner | Local and remote file inclusion | 80+ |
+| XXE Scanner | XML External Entity attacks | 50+ |
+| SSTI Scanner | Template injection (Jinja2, Twig, Freemarker) | 75+ |
+| Deserialization | Insecure deserialization (Java, PHP, Python, .NET) | 60+ |
+| Webshell Scanner | Backdoor and webshell detection | 40+ |
 
-## OWASP 2025 Coverage
-
-| Category | OWASP ID | Modules |
-|----------|----------|---------|
-| Broken Access Control | A01 | broken_access_control, auth_scanner, jwt_scanner, cors_scanner |
-| Security Misconfiguration | A02 | security_misconfig, headers_scanner, cloud_scanner, robots_txt |
-| Supply Chain Failures | A03 | supply_chain_scanner, dependency_scanner, js_secrets_scanner |
-| Cryptographic Failures | A04 | jwt_scanner, headers_scanner, security_misconfig |
-| Injection | A05 | sqli_scanner, xss_scanner, command_injection, xxe_scanner, ssti_scanner |
-| Insecure Design | A06 | api_scanner, graphql_scanner, websocket_scanner |
-| Authentication Failures | A07 | auth_scanner, jwt_scanner, csrf_scanner |
-| Integrity Failures | A08 | deserialization_scanner, proto_pollution |
-| Logging Failures | A09 | logging_scanner |
-| Exception Handling | A10 | exception_scanner |
-
----
-
-## Scanning Modules
-
-### Critical Risk
-
-| Module | Description |
-|--------|-------------|
-| XSS Scanner | Cross-Site Scripting detection with 200+ payloads |
-| SQL Injection | Database fingerprinting and injection testing |
-| Command Injection | OS command and SSTI detection |
-| LFI/RFI Scanner | File inclusion vulnerabilities |
-| Webshell Scanner | Backdoor detection |
-| XXE Scanner | XML External Entity attacks |
-| SSTI Scanner | Template injection (Jinja2, Twig, Freemarker) |
-| Deserialization | Insecure deserialization (Java, PHP, Python, .NET) |
-
-### High Risk
+### High Risk Modules
 
 | Module | Description |
 |--------|-------------|
 | SSRF Scanner | Server-Side Request Forgery |
-| Auth Security | Authentication audits |
-| API Security | REST/GraphQL security |
-| JWT Scanner | JWT configuration audits |
-| BAC Scanner | Broken Access Control |
+| JWT Scanner | JWT configuration and vulnerability audits |
+| Auth Scanner | Authentication mechanism testing |
+| API Scanner | REST/GraphQL API security analysis |
+| BAC Scanner | Broken Access Control detection |
 | Proto Pollution | JavaScript Prototype Pollution |
-| Cloud Security | Cloud configuration audits |
-| GraphQL Scanner | GraphQL-specific attacks |
-| Race Condition | TOCTOU and parallel attacks |
+| Cloud Scanner | Cloud service misconfiguration detection |
+| GraphQL Scanner | GraphQL-specific vulnerability testing |
+| Race Condition | TOCTOU and parallel request attacks |
 
-### Medium Risk
+### Medium Risk Modules
 
 | Module | Description |
 |--------|-------------|
 | CSRF Scanner | Cross-Site Request Forgery |
-| CORS Scanner | CORS misconfiguration |
-| Open Redirect | Unvalidated redirects |
-| Directory Brute | Path enumeration |
+| CORS Scanner | CORS policy misconfiguration |
+| Open Redirect | Unvalidated redirect detection |
+| Directory Scanner | Path enumeration and discovery |
 
-### Reconnaissance
+### Reconnaissance Modules
 
 | Module | Description |
 |--------|-------------|
-| Security Headers | HTTP header analysis |
-| Subdomain Enum | Subdomain discovery |
-| security.txt | RFC 9116 compliance |
-| robots.txt Audit | Crawl path analysis |
-| Recon Scanner | Fingerprinting |
-| JS Secrets | Hardcoded credentials |
-| Port Scanner | Network discovery |
-| Supply Chain | Dependency audit |
-| Exception Scan | Error handling audit |
+| Security Headers | HTTP security header analysis |
+| Subdomain Enum | Subdomain discovery and enumeration |
+| Port Scanner | Network port scanning and service detection |
+| JS Secrets | JavaScript file credential extraction |
+| Supply Chain | Dependency and supply chain analysis |
+| Exception Scanner | Error handling and information disclosure |
 
 ### External Tools
 
-| Module | Tool | Description |
-|--------|------|-------------|
-| Nmap Scanner | nmap | Network discovery and service mapping |
-| Gobuster Scan | gobuster | Directory brute-forcing |
-| Nikto Scanner | nikto | Web server vulnerability audit |
-| Hash Cracker | john/hashcat | Hash detection and cracking |
+| Tool | Purpose | Installation Required |
+|------|---------|----------------------|
+| Nmap | Network discovery and port scanning | Yes |
+| Nikto | Web server vulnerability scanning | Yes |
+| Gobuster | Directory and DNS brute-forcing | Yes |
+| John/Hashcat | Password hash cracking | Yes |
 
-Note: External tools require manual installation.
+**OWASP Top 10 2025 Coverage**
+
+| OWASP ID | Category | Covered Modules |
+|----------|----------|-----------------|
+| A01 | Broken Access Control | BAC, Auth, JWT, CORS |
+| A02 | Cryptographic Failures | JWT, Headers, Security Config |
+| A03 | Injection | SQLi, XSS, Command Injection, XXE, SSTI |
+| A04 | Insecure Design | API, GraphQL, WebSocket |
+| A05 | Security Misconfiguration | Headers, Cloud, Robots.txt |
+| A06 | Vulnerable Components | Supply Chain, Dependency Scanner |
+| A07 | Authentication Failures | Auth, JWT, CSRF |
+| A08 | Software Integrity Failures | Deserialization, Proto Pollution |
+| A09 | Logging Failures | Logging Scanner |
+| A10 | Server-Side Request Forgery | SSRF Scanner |
 
 ---
 
@@ -159,61 +238,178 @@ Note: External tools require manual installation.
 ```
 SENTINEL/
 ├── src/
-│   ├── api/              # FastAPI REST API
-│   ├── core/             # Engine, Config, Auth, Database
-│   ├── modules/          # Scanning modules (48 total)
-│   ├── plugins/          # Plugin system
-│   ├── payloads/         # Vulnerability payloads
-│   ├── reporting/        # Report formatters
-│   └── utils/            # Utilities
+│   ├── api/              # FastAPI REST API endpoints
+│   ├── core/             # Core engine, config, auth, database
+│   ├── modules/          # 48 scanning modules
+│   ├── plugins/          # Plugin system for extensibility
+│   ├── payloads/         # Vulnerability payloads and wordlists
+│   ├── reporting/        # Multi-format report generators
+│   └── utils/            # Utilities and helpers
 ├── tests/                # Unit and integration tests
-├── wordlists/            # Built-in dictionaries
+│   ├── unit/             # Module-specific tests
+│   └── integration/      # End-to-end tests
+├── web/                  # Web dashboard (HTML/CSS/JS)
+├── wordlists/            # Built-in attack dictionaries
 ├── config/               # Configuration files
-├── scanner.py            # CLI interface
-└── web_app.py            # Web dashboard
+├── docker/               # Docker deployment files
+├── docs/                 # Documentation
+├── scanner.py            # CLI entry point
+└── web_app.py            # Web interface entry point
 ```
 
 ### Technology Stack
 
-- **Backend:** FastAPI (Python 3.11+, Async)
-- **Database:** PostgreSQL with SQLAlchemy
-- **Cache:** Redis + Celery
-- **AI Analysis:** Google Gemini (optional)
-- **CI/CD:** GitHub Actions
+**Backend**
+- FastAPI (Python 3.10+) - Async web framework
+- SQLAlchemy 2.0 - Async ORM with PostgreSQL/SQLite
+- Pydantic v2 - Data validation
+- aiohttp/httpx - Async HTTP clients
+
+**Infrastructure**
+- Redis - Caching and session storage
+- Celery - Distributed task queue
+- PostgreSQL - Primary database
+- Docker - Containerization
+
+**AI & Reporting**
+- Google Gemini - AI-powered report generation
+- Jinja2 - Template rendering
+- WeasyPrint - PDF generation
+- Chart.js - Dashboard visualizations
+
+**Security & Testing**
+- Bandit, Safety, Semgrep - Security scanning
+- Pytest - Test framework
+- Ruff, Black, isort - Code quality
+- Pre-commit hooks - Automated checks
 
 ---
 
-## System Requirements
+## Documentation
 
-- **Python:** 3.10+
-- **RAM:** 4GB minimum, 8GB recommended
-- **Docker:** Optional, recommended for production
-- **External Tools:** Nmap, Nikto, Gobuster (optional)
-
----
-
-## Testing
-
-```bash
-# Run all tests
-pytest tests/unit/
-
-# Run with coverage
-pytest --cov=src --cov-report=term-missing
-```
+| Document | Description |
+|----------|-------------|
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Production deployment with Docker, Kubernetes, cloud providers |
+| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | REST API endpoints and integration guide |
+| [docs/EXTERNAL_TOOLS.md](docs/EXTERNAL_TOOLS.md) | External tool setup and configuration |
+| [docs/PLUGIN_DEVELOPMENT.md](docs/PLUGIN_DEVELOPMENT.md) | Custom module and plugin development |
 
 ---
 
 ## Output Formats
 
-SENTINEL generates reports in multiple formats:
+SENTINEL generates reports in multiple formats for different use cases:
 
-1. **JSON** - API integration
-2. **HTML** - Interactive dashboard
-3. **Executive Summary** - AI-powered business report
-4. **Markdown** - GitHub-friendly
-5. **SARIF** - Security tool integration
-6. **Nuclei Templates** - Export as Nuclei YAML
+| Format | Use Case | Description |
+|--------|----------|-------------|
+| **JSON** | API Integration | Structured data for programmatic processing |
+| **HTML** | Interactive Reports | Dashboard with charts and filtering |
+| **Markdown** | Documentation | GitHub-friendly vulnerability reports |
+| **SARIF** | CI/CD Integration | GitHub Security, CodeQL, and SAST tools |
+| **Nuclei** | Template Export | Export findings as Nuclei YAML templates |
+| **Executive Summary** | Management | AI-generated business impact reports |
+
+**Example Output**
+```json
+{
+  "scan_id": "abc123",
+  "target": "https://example.com",
+  "timestamp": "2025-01-07T20:00:00Z",
+  "total_vulnerabilities": 15,
+  "severity_counts": {
+    "critical": 2,
+    "high": 5,
+    "medium": 6,
+    "low": 2
+  },
+  "vulnerabilities": [
+    {
+      "title": "SQL Injection in login form",
+      "severity": "critical",
+      "cvss_score": 9.8,
+      "module": "sqli_scanner",
+      "evidence": "...",
+      "poc": "..."
+    }
+  ]
+}
+```
+
+---
+
+## Testing
+
+**Run Tests**
+```bash
+# All tests
+pytest
+
+# Unit tests only
+pytest tests/unit/
+
+# With coverage report
+pytest --cov=src --cov-report=html
+
+# Specific module
+pytest tests/unit/test_xss_scanner.py -v
+```
+
+**Code Quality**
+```bash
+# Run all checks
+make lint
+
+# Individual tools
+ruff check src/
+black --check src/
+mypy src/
+bandit -r src/
+```
+
+**Pre-commit Hooks**
+```bash
+# Install hooks
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
+---
+
+## Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+**Getting Started**
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests and linting (`make test lint`)
+5. Commit with conventional commits (`feat: add new scanner module`)
+6. Push and create a Pull Request
+
+**Development Setup**
+```bash
+# Install dev dependencies
+poetry install --with dev
+
+# Install pre-commit hooks
+pre-commit install
+
+# Run in development mode
+python web_app.py --reload
+```
+
+**Code Standards**
+- Follow PEP 8 style guide
+- Add type hints for all functions
+- Write tests for new features
+- Update documentation
+- Use conventional commit messages
+
+**Adding New Modules**
+See [docs/PLUGIN_DEVELOPMENT.md](docs/PLUGIN_DEVELOPMENT.md) for detailed instructions on creating custom scanning modules.
 
 ---
 
@@ -221,12 +417,14 @@ SENTINEL generates reports in multiple formats:
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+---
+
 ## Legal Notice
 
 This tool is intended for authorized security testing and educational purposes only.
 
 **Authorized Use:**
-- Penetration testing with written permission
+- Penetration testing with written authorization
 - Security research on systems you own
 - Bug bounty programs within defined scope
 - Educational and academic purposes
@@ -234,6 +432,7 @@ This tool is intended for authorized security testing and educational purposes o
 **Prohibited:**
 - Unauthorized access to systems or networks
 - Malicious or illegal activities
+- Violation of computer fraud and abuse laws
 
 Users are solely responsible for compliance with applicable laws. The author assumes no liability for misuse.
 
@@ -241,9 +440,12 @@ Users are solely responsible for compliance with applicable laws. The author ass
 
 ## Credits
 
-- OWASP for security research guidelines
-- The bug bounty community for payload research
+- OWASP for security research guidelines and vulnerability classifications
+- The bug bounty and security research community for payload contributions
+- All open-source projects that made this tool possible
 
 ---
 
-**Developed by Halil Berkay Şahin**
+**Developed by [Halil Berkay Şahin](https://github.com/halilberkayy)**
+
+For questions, issues, or feature requests, please use [GitHub Issues](https://github.com/halilberkayy/SENTINEL/issues).
