@@ -7,7 +7,6 @@ A production-ready web vulnerability scanner with 48 security modules and full O
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-5.0.0-red.svg)]()
-[![CI](https://github.com/halilberkayy/SENTINEL/workflows/CI/badge.svg)](https://github.com/halilberkayy/SENTINEL/actions)
 
 ---
 
