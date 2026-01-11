@@ -536,9 +536,18 @@ async def generate_ai_report(request: AIReportRequest, background_tasks: Backgro
             detail="AI not configured. Set GOOGLE_AI_API_KEY in .env file"
         )
     
+    # Try to get results by scan_id
     scan_results = scan_manager.last_scan_results.get(request.scan_id)
+    
+    # Fallback to absolute latest scan if id doesn't match and results exist
+    if not scan_results and scan_manager.last_scan_results:
+        # Get the most recently added scan result
+        latest_id = list(scan_manager.last_scan_results.keys())[-1]
+        scan_results = scan_manager.last_scan_results[latest_id]
+        logger.info(f"Scan ID {request.scan_id} not found. Falling back to latest scan: {latest_id}")
+    
     if not scan_results:
-        raise HTTPException(status_code=404, detail="Scan results not found")
+        raise HTTPException(status_code=404, detail="Scan results not found. Make sure a scan has completed.")
     
     # Generate report in background
     background_tasks.add_task(
@@ -700,6 +709,15 @@ async def run_scan_task(scan_id: str, url: str, modules: List[str]):
             ),
             result_callback=module_result_callback
         )
+        
+        # Post-scan reporting
+        await scan_manager.broadcast({
+            "type": "progress",
+            "scan_id": scan_id,
+            "module": "ChainAnalyzer",
+            "status": "Running post-scan correlation analysis...",
+            "percentage": 95
+        })
         
         # Prepare results for JSON serialization
         final_results = []

@@ -1,264 +1,41 @@
 {
-  "scanner": {
-    "name": "Red Team Web Vulnerability Scanner",
-    "version": "3.0.0",
-    "author": "Halil Berkay Şahin",
-    "description": "Advanced Red Team & Penetration Testing Framework",
-    "educational_only": false,
-    "red_team_mode": true
-  },
   "network": {
     "timeout": 30,
-    "fast_timeout": 10,
-    "max_retries": 3,
-    "concurrent_requests": 50,
-    "rate_limit": 20,
-    "user_agents": [
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
-    ],
     "verify_ssl": true,
-    "follow_redirects": true,
-    "max_redirects": 10
+    "max_retries": 3,
+    "retry_delay": 1.0,
+    "max_redirects": 10,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "rate_limit": 20
   },
-  "proxy": {
-    "enabled": false,
-    "tor_enabled": false,
-    "proxy_chains": [],
-    "rotation_interval": 300,
-    "proxy_timeout": 15,
-    "socks_proxy": {
-      "host": "127.0.0.1",
-      "port": 9050
-    }
-  },
-  "stealth": {
-    "evasion_level": "HIGH",
-    "traffic_profile": "NORMAL_USER",
-    "randomize_headers": true,
-    "delay_between_requests": 0.5,
-    "random_delay_range": [
-      0.1,
-      2.0
-    ],
-    "identity_rotation": true,
-    "log_cleanup": false
-  },
-  "scanning": {
-    "deep_scan": false,
-    "aggressive_mode": false,
-    "skip_suspicious_urls": false,
-    "max_scan_depth": 3,
-    "max_pages": 100,
-    "wordlist_threads": 10,
-    "payload_threads": 5
-  },
-  "modules": {
-    "basic": {
-      "enabled": true,
-      "modules": [
-        "xss_scanner",
-        "sqli_scanner",
-        "dir_bruteforce",
-        "headers_checker",
-        "securitytxt_checker",
-        "robots_checker"
-      ]
-    },
-    "async": {
-      "enabled": true,
-      "modules": [
-        "async_xss_scanner",
-        "async_sqli_scanner",
-        "async_dir_bruteforce"
-      ]
-    },
-    "exploitation": {
-      "enabled": true,
-      "require_authorization": true,
-      "modules": [
-        "sqli_exploitation",
-        "xss_session_hijack",
-        "lfi_rfi_scanner",
-        "command_injection_scanner",
-        "csrf_bruteforce",
-        "webshell_uploader",
-        "anti_forensics"
-      ]
-    },
-    "advanced": {
-      "enabled": true,
-      "modules": [
-        "network_scanner",
-        "subdomain_enum",
-        "api_scanner",
-        "auth_bypass",
-        "crypto_analyzer"
-      ]
-    }
-  },
-  "payloads": {
-    "xss": {
-      "basic_payloads": 50,
-      "advanced_payloads": 200,
-      "waf_bypass": true,
-      "context_aware": true
-    },
-    "sqli": {
-      "basic_payloads": 100,
-      "advanced_payloads": 500,
-      "database_specific": true,
-      "time_based_delay": 5
-    },
-    "command_injection": {
-      "platform_specific": true,
-      "blind_detection": true,
-      "time_based_delay": 5
-    }
-  },
-  "wordlists": {
-    "directories": "wordlists/common_directories.txt",
-    "files": "wordlists/common_files.txt",
-    "subdomains": "wordlists/subdomains.txt",
-    "passwords": "wordlists/passwords.txt",
-    "user_agents": "wordlists/user_agents.txt",
-    "custom_wordlists": []
+  "scanner": {
+    "concurrent_requests": 10,
+    "max_payloads_per_module": 100,
+    "enable_advanced_detection": true,
+    "enable_waf_bypass": true,
+    "enable_ua_rotation": true,
+    "enable_false_positive_reduction": true,
+    "scan_depth": 3
   },
   "output": {
     "format": "txt",
-    "directory": "output/reports",
-    "filename_pattern": "scan_report_{timestamp}",
-    "include_screenshots": false,
-    "save_raw_responses": false,
-    "compress_reports": false
+    "output_dir": "output/reports",
+    "include_timestamps": true,
+    "include_evidence": true,
+    "severity_threshold": "LOW"
   },
   "logging": {
     "level": "INFO",
-    "console_output": true,
-    "file_output": true,
-    "log_directory": "output/logs",
-    "log_rotation": true,
-    "max_log_size": "10MB",
+    "file": "output/logs/scanner.log",
+    "max_file_size": 10485760,
     "backup_count": 5,
-    "detailed_errors": true
-  },
-  "exploitation": {
-    "auto_exploit": false,
-    "max_exploitation_time": 300,
-    "save_exploitation_data": true,
-    "session_hijack_port": 8888,
-    "webshell_timeout": 60,
-    "reverse_shell_port": 4444,
-    "persistence_techniques": false
-  },
-  "red_team": {
-    "operation_name": "Test Operation",
-    "target_organization": "Test Target Organization",
-    "engagement_type": "internal",
-    "authorized_targets": [],
-    "excluded_targets": [],
-    "escalation_contacts": [],
-    "rules_of_engagement": {
-      "business_hours_only": false,
-      "avoid_dos": true,
-      "avoid_data_modification": true,
-      "notification_required": false
-    }
-  },
-  "notifications": {
-    "email": {
-      "enabled": false,
-      "smtp_server": "",
-      "smtp_port": 587,
-      "username": "",
-      "password": "",
-      "recipients": [],
-      "send_on_completion": true,
-      "send_on_critical": true
-    },
-    "webhook": {
-      "enabled": false,
-      "url": "",
-      "headers": {},
-      "events": [
-        "scan_complete",
-        "vulnerability_found",
-        "exploitation_success"
-      ]
-    }
-  },
-  "gui": {
-    "theme": "dark",
-    "auto_save": true,
-    "remember_settings": true,
-    "default_modules": [
-      "xss_scanner",
-      "sqli_scanner",
-      "dir_bruteforce"
-    ],
-    "advanced_mode": false,
-    "confirmation_dialogs": true
-  },
-  "web_gui": {
-    "host": "127.0.0.1",
-    "port": 5000,
-    "debug": false,
-    "auto_open_browser": true,
-    "session_timeout": 3600,
-    "max_file_upload": "10MB"
-  },
-  "cli": {
-    "colors": true,
-    "progress_bars": true,
-    "verbose": false,
-    "interactive_mode": false,
-    "auto_confirm": false,
-    "banner": true
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
   },
   "security": {
-    "api_keys": {},
-    "encryption": {
-      "enabled": false,
-      "algorithm": "AES-256",
-      "key_file": "config/.encryption_key"
-    },
-    "access_control": {
-      "require_auth": false,
-      "username": "",
-      "password_hash": "",
-      "session_timeout": 3600
-    }
-  },
-  "integrations": {
-    "burp_suite": {
-      "enabled": false,
-      "proxy_host": "127.0.0.1",
-      "proxy_port": 8080
-    },
-    "metasploit": {
-      "enabled": false,
-      "rpc_host": "127.0.0.1",
-      "rpc_port": 55553,
-      "rpc_user": "",
-      "rpc_password": ""
-    },
-    "nmap": {
-      "enabled": true,
-      "binary_path": "/usr/bin/nmap",
-      "default_options": "-sS -sV -O"
-    },
-    "nuclei": {
-      "enabled": false,
-      "binary_path": "/usr/bin/nuclei",
-      "templates_path": "/opt/nuclei-templates"
-    }
-  },
-  "updates": {
-    "auto_check": true,
-    "check_interval": 86400,
-    "auto_download": false,
-    "backup_before_update": true,
-    "update_channel": "stable"
+    "enable_ethical_checks": true,
+    "require_consent": true,
+    "blacklisted_domains": [],
+    "whitelisted_domains": [],
+    "max_requests_per_domain": 1000
   }
 }

@@ -8,9 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedModules = new Set();
     let ws = null;
     let vulnCounter = 0;
-    let currentScanId = null;
+    let currentScanId = localStorage.getItem('sentinel_latest_scan_id');
     let currentPocData = null;
     let currentScanResults = []; // Store real-time results
+    let totalExpectedModules = 0;
+    let completedModulesCount = 0;
     let scanHistory = JSON.parse(localStorage.getItem('sentinel_archives') || '[]');
     const launchTime = Date.now();
 
@@ -277,8 +279,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function processIntel(data) {
         if (data.type === 'progress') {
             activeModEl.innerText = data.module;
-            progressPercent.innerText = `${Math.round(data.percentage)}%`;
-            progressLine.style.width = `${data.percentage}%`;
+
+            // Calculate global progress
+            if (data.status === 'completed' || data.percentage === 100) {
+                completedModulesCount++;
+            }
+
+            const globalPercentage = totalExpectedModules > 0
+                ? (completedModulesCount / totalExpectedModules) * 100
+                : data.percentage;
+
+            progressPercent.innerText = `${Math.round(globalPercentage)}%`;
+            progressLine.style.width = `${globalPercentage}%`;
             log(data.module, data.status, 'sys');
         } else if (data.type === 'module_result') {
             // Add to our real-time collection
@@ -293,11 +305,19 @@ document.addEventListener('DOMContentLoaded', () => {
             log('COMMAND', 'Stratejik hedeflere ulaşıldı. Raporlama temiz.', 'success');
             activeModEl.innerText = 'GÜVENLİ';
             progressLine.style.width = '100%';
+            progressPercent.innerText = '100%';
             currentScanId = data.scan_id;
+            localStorage.setItem('sentinel_latest_scan_id', data.scan_id);
 
             // Final render to ensure everything is in order (including chaining results)
             currentScanResults = data.results;
             renderIncidents(data.results);
+
+            // Enable AI buttons after full completion
+            document.querySelectorAll('.ai-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
 
             // Show AI panel always after scan completion
             if (aiIntelSection) {
@@ -906,6 +926,15 @@ document.addEventListener('DOMContentLoaded', () => {
         logViewer.innerHTML = '';
         // Reset state for new scan
         currentScanResults = [];
+        completedModulesCount = 0;
+        totalExpectedModules = selectedModules.size;
+
+        // Disable AI buttons during scan
+        document.querySelectorAll('.ai-btn').forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+
         findingsGrid.innerHTML = '';
         vulnCounter = 0;
         vulnCountEl.innerText = '0';
