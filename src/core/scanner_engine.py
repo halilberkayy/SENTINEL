@@ -99,7 +99,7 @@ class ScanResult:
 class ScannerEngine:
     """High-performance security scanning orchestrator."""
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, enable_dynamic_discovery: bool = False):
         self.config = config
         self.http_client = HTTPClient(config.network)
         if config.scanner.enable_waf_bypass:
@@ -110,6 +110,7 @@ class ScannerEngine:
         self.end_time: datetime | None = None
         self.target_url: str | None = None
         self.template_manager = ReportTemplateManager()
+        self.enable_dynamic_discovery = enable_dynamic_discovery
 
         # Explicit registration
         self.modules: dict[str, BaseScanner] = {
@@ -167,13 +168,20 @@ class ScannerEngine:
             "sse_scanner": SSEScanner(config, self.http_client),
             "protocol_scanner": ProtocolScanner(config, self.http_client),
         }
+        
+        # Optionally discover additional modules dynamically
+        if self.enable_dynamic_discovery:
+            self._discover_modules()
+        
+        logger.info(f"Scanner engine initialized with {len(self.modules)} modules")
 
     def _discover_modules(self):
         """Dynamically discover and register scanning modules from the modules package."""
         modules_path = Path(__file__).parent.parent / "modules"
+        discovered_count = 0
 
         for _, name, is_pkg in pkgutil.iter_modules([str(modules_path)]):
-            if is_pkg or name == "base_scanner":
+            if is_pkg or name == "base_scanner" or name.startswith("__"):
                 continue
 
             try:
@@ -181,17 +189,45 @@ class ScannerEngine:
                 for attr_name in dir(module):
                     attr = getattr(module, attr_name)
                     if isinstance(attr, type) and issubclass(attr, BaseScanner) and attr is not BaseScanner:
-
+                        # Generate module ID from filename
+                        module_id = name.replace("_scanner", "").replace("_module", "")
+                        
+                        # Skip if already registered
+                        if module_id in self.modules:
+                            continue
+                        
                         module_instance = attr(self.config, self.http_client)
-                        module_id = name.replace("_scanner", "")
                         self.modules[module_id] = module_instance
-                        logger.debug(f"Registered module: {module_id} ({attr_name})")
+                        discovered_count += 1
+                        logger.debug(f"Dynamically registered module: {module_id} ({attr_name})")
+                        break  # Only register first scanner class per file
 
             except Exception as e:
                 logger.error(f"Failed to load module {name}: {e}")
+        
+        if discovered_count > 0:
+            logger.info(f"Dynamically discovered {discovered_count} additional modules")
+
+    def get_module_list(self) -> list[dict[str, str]]:
+        """Get list of all available modules with their info."""
+        module_list = []
+        for module_id, scanner in self.modules.items():
+            module_list.append({
+                "id": module_id,
+                "name": scanner.name,
+                "description": getattr(scanner, "description", "Security scanner module"),
+                "version": getattr(scanner, "version", "1.0.0"),
+                "capabilities": getattr(scanner, "capabilities", []),
+            })
+        return sorted(module_list, key=lambda x: x["name"])
+    
+    def get_module_count(self) -> int:
+        """Get total number of registered modules."""
+        return len(self.modules)
 
     async def scan_target(
-        self, url: str, module_names: list[str] | None = None, progress_callback: Callable | None = None
+        self, url: str, module_names: list[str] | None = None, progress_callback: Callable | None = None,
+        result_callback: Callable | None = None
     ) -> list[ScanResult]:
         """
         Execute a full security assessment on the target URL.
@@ -221,8 +257,27 @@ class ScannerEngine:
         try:
             await self.http_client.start()
 
-            tasks = [sem_run(mid) for mid in active_module_ids]
-            self.results = await asyncio.gather(*tasks)
+            tasks = {asyncio.create_task(sem_run(mid)): mid for mid in active_module_ids}
+            
+            for task in asyncio.as_completed(tasks):
+                try:
+                    result = await task
+                    self.results.append(result)
+                    
+                    # Report completion
+                    if progress_callback:
+                        progress_callback(result.module_name, "completed", 100)
+                    
+                    # Call result callback for real-time reporting
+                    if result_callback:
+                        if asyncio.iscoroutinefunction(result_callback):
+                            await result_callback(result)
+                        else:
+                            result_callback(result)
+                            
+                except Exception as e:
+                    mid = tasks[task]
+                    logger.error(f"Task for module {mid} failed: {e}")
 
             # --- POST-SCAN ANALYSIS: CHAINING ---
             if self.results:

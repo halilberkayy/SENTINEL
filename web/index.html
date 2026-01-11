@@ -4,13 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINEL | Tactical Security Assessment</title>
+    <meta name="description" content="SENTINEL - Enterprise Security Assessment Platform with 48 scanning modules">
+    <meta name="theme-color" content="#03050a">
+    <title>SENTINEL | Tactical Security Command</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;600;800&family=Syncopate:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;600;700&display=swap"
         rel="stylesheet">
 
     <link rel="stylesheet" href="/static/css/style.css">
@@ -18,18 +20,20 @@
     <script src="/static/js/chart.min.js"></script>
 </head>
 
-<body class="ops-theme">
+<body>
+    <!-- Atmospheric Layers -->
     <div class="app-wrapper"></div>
-    <div class="grain"></div>
     <div class="grid-overlay"></div>
+    <div class="grain"></div>
 
-    <aside class="sidebar">
+    <!-- Navigation Sidebar -->
+    <aside class="sidebar" id="sidebar">
         <div class="brand-section">
             <div class="logo-wrap">
                 <div class="logo-inner">S</div>
                 <div class="brand-text">
                     <h2>SENTINEL</h2>
-                    <span>TACTICAL HUB</span>
+                    <span>COMMAND v5.0.0</span>
                 </div>
             </div>
         </div>
@@ -39,168 +43,176 @@
                 <i class="fa-solid fa-crosshairs"></i>
                 <span>Operations</span>
             </a>
-            <a href="#" class="nav-link" data-target="archive-view">
-                <i class="fa-solid fa-database"></i>
-                <span>Archives</span>
+            <a href="#" class="nav-link" data-target="templates-view">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Scan Templates</span>
             </a>
-            <a href="#" class="nav-link" data-target="config-view">
-                <i class="fa-solid fa-gear"></i>
-                <span>Configuration</span>
+            <a href="#" class="nav-link" data-target="archive-view">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Scan History</span>
             </a>
             <a href="#" class="nav-link" data-target="payload-view">
                 <i class="fa-solid fa-bomb"></i>
-                <span>Payload DB</span>
+                <span>Payload Arsenal</span>
+            </a>
+            <a href="#" class="nav-link" data-target="config-view">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Configuration</span>
             </a>
         </nav>
 
         <div class="sys-health">
             <div class="health-label">
-                <span>Core Health</span>
+                <span>System Status</span>
                 <span class="pulse-indicator">OPTIMAL</span>
             </div>
             <div class="health-bar">
                 <div class="health-fill"></div>
             </div>
-            <div class="health-label" style="margin-top: 10px; opacity: 0.5;">
-                <span>SENTINEL ENGINE</span>
-                <span>v3.8.2</span>
+            <div class="health-label" style="margin-top: 12px; opacity: 0.5;">
+                <span>48 Modules Active</span>
+                <span>OWASP 2025</span>
             </div>
         </div>
     </aside>
 
+    <!-- Main Content Area -->
     <main class="main-stage">
         <header class="hdr-bar">
             <div class="hdr-title">
                 <div class="path-crumb">
-                    NETWORK / <span class="active">CYBER_ASSESSMENT</span>
+                    SECURITY / <span class="active">TACTICAL_ASSESSMENT</span>
                 </div>
             </div>
             <div class="hud-clock" id="session-clock">00:00:00</div>
         </header>
 
-        <!-- Operations View -->
+        <!-- ================================= -->
+        <!-- OPERATIONS VIEW - Main Scanner   -->
+        <!-- ================================= -->
         <div id="ops-view" class="page-view active">
             <div class="hero-block">
-                <h1 class="glitch-text" data-text="CYBER SECURITY ASSESSMENT">CYBER SECURITY ASSESSMENT</h1>
-                <p>Gelişmiş tehdit algılama ve zafiyet analiz motoru ile ağ güvenliğini dijital olarak güvence altına
-                    alın.</p>
+                <h1 class="glitch-text" data-text="CYBER SECURITY OPERATIONS">CYBER SECURITY OPERATIONS</h1>
+                <p>Enterprise-grade vulnerability assessment platform with AI-powered intelligence reporting and 48
+                    security modules.</p>
             </div>
 
             <div class="ops-grid">
-                <!-- Target Input Area -->
+                <!-- Target Input -->
                 <div class="target-bay">
                     <div class="intel-input">
-                        <i class="fa-solid fa-shield-halved" style="color: var(--accent-primary)"></i>
-                        <input type="text" id="target-url" placeholder="https://target-domain.com" autocomplete="off">
+                        <i class="fa-solid fa-globe"></i>
+                        <input type="text" id="target-url" placeholder="https://target-domain.com" autocomplete="off"
+                            spellcheck="false">
                         <button id="start-scan-btn" class="btn-launch">
-                            LAUNCH ASSESSMENT
+                            <i class="fa-solid fa-rocket"></i>
+                            LAUNCH SCAN
                         </button>
                     </div>
                 </div>
 
-                <!-- Module Matrix -->
+                <!-- Module Selection Panel -->
                 <section class="panel-tactical">
                     <div class="p-header">
-                        <h3>MODÜL MATRİSİ</h3>
+                        <h3>MODULE MATRIX</h3>
                         <div class="actions">
                             <span id="select-all">Select All</span>
-                            <span style="opacity: 0.2">/</span>
+                            <span style="opacity: 0.3">|</span>
                             <span id="deselect-all">Clear</span>
                         </div>
                     </div>
                     <div id="modules-grid" class="matrix-scroll">
-                        <!-- Modules Injected -->
-                        <div style="padding: 2rem; text-align: center; color: var(--text-dim)">Initializing Core...
+                        <div style="padding: 2rem; text-align: center; color: var(--text-tertiary)">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 1rem;"></i>
+                            <div>Initializing security modules...</div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Intelligence HUD (Results) -->
+                <!-- Results HUD -->
                 <section id="results-section" class="intel-hud hidden">
                     <div class="live-metrics">
                         <div class="metric-box">
                             <div class="m-label">Completion</div>
                             <div class="m-value" id="progress-percent">0%</div>
-                            <div class="progress-bar-linear" style="height: 2px; width: 100%;">
-                                <div id="progress-line" class="fill"></div>
+                            <div class="progress-bar-linear">
+                                <div id="progress-line" class="fill" style="width: 0%;"></div>
                             </div>
                         </div>
                         <div class="metric-box">
-                            <div class="m-label">Total Findings</div>
+                            <div class="m-label">Vulnerabilities Found</div>
                             <div class="m-value alert" id="vuln-count">0</div>
-                            <div class="m-label" style="color: var(--accent-danger)">Risk Level: Critical</div>
+                            <div class="m-label" id="risk-indicator">Risk Level: Unknown</div>
                         </div>
                         <div class="metric-box">
-                            <div class="m-label">Active Core</div>
-                            <div class="m-value" id="active-mod" style="font-size: 1rem; color: var(--accent-success)">
-                                IDLE</div>
-                            <div class="m-label">Engine Status</div>
+                            <div class="m-label">Active Module</div>
+                            <div class="m-value" id="active-mod"
+                                style="font-size: 1.1rem; color: var(--holo-electric);">IDLE</div>
+                            <div class="m-label">Engine Processing</div>
                         </div>
                     </div>
 
+                    <!-- Vulnerability Chart -->
                     <div class="code-terminal">
                         <div class="term-hdr">
-                            <div class="m-label" style="font-size: 0.6rem">VULNERABILITY ANALYTICS</div>
-                            <i class="fa-solid fa-chart-pie"
-                                style="color: var(--accent-primary); font-size: 0.7rem"></i>
+                            <div class="m-label">VULNERABILITY ANALYTICS</div>
+                            <i class="fa-solid fa-chart-pie" style="color: var(--holo-cyan);"></i>
                         </div>
                         <div class="term-body"
-                            style="display: flex; justify-content: center; align-items: center; padding: 1rem; height: 200px;">
+                            style="display: flex; justify-content: center; align-items: center; height: 220px;">
                             <canvas id="vuln-chart"></canvas>
                         </div>
                     </div>
 
+                    <!-- Live Logs -->
                     <div class="code-terminal">
                         <div class="term-hdr">
-                            <div class="m-label" style="font-size: 0.6rem">PLATFORM LOGS</div>
-                            <i class="fa-solid fa-bolt" style="color: var(--accent-warning); font-size: 0.7rem"></i>
+                            <div class="m-label">OPERATION LOGS</div>
+                            <i class="fa-solid fa-terminal" style="color: var(--holo-violet);"></i>
                         </div>
                         <div id="log-viewer" class="term-body">
-                            <div class="log-line">Sentinel core initialized. Waiting for mission start...</div>
+                            <div class="log-line sys">SENTINEL core initialized. Awaiting target acquisition...</div>
                         </div>
                     </div>
 
+                    <!-- Vulnerability Cards -->
                     <div class="incident-reports">
-                        <div class="p-header" style="background: transparent; border: none; padding-left: 0">
+                        <div class="p-header" style="background: transparent; border: none; padding: 0;">
                             <h3>INCIDENT REPORTS</h3>
                         </div>
-                        <div id="findings-grid" class="incidents-stream">
-                            <!-- Injected Findings -->
-                        </div>
+                        <div id="findings-grid" class="incidents-stream"></div>
                     </div>
-
 
                     <!-- AI Intelligence Section -->
                     <section id="ai-intel-section" class="ai-intel-panel">
                         <div class="p-header"
-                            style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1)); border-color: rgba(139, 92, 246, 0.3);">
+                            style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(0, 212, 255, 0.04));">
                             <h3 style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fa-solid fa-brain" style="color: #8b5cf6;"></i>
+                                <i class="fa-solid fa-brain" style="color: var(--holo-violet);"></i>
                                 AI INTELLIGENCE NARRATOR
                             </h3>
-                            <div class="ai-status" id="ai-status">
-                                <span class="pulse-indicator" style="background: #8b5cf6;">READY</span>
+                            <div id="ai-status">
+                                <span class="pulse-indicator" style="color: var(--holo-violet);">READY</span>
                             </div>
                         </div>
 
-                        <div class="ai-controls" style="padding: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <button class="ai-btn" id="btn-ai-executive" data-type="executive">
+                        <div class="ai-controls">
+                            <button class="ai-btn" data-type="executive">
                                 <i class="fa-solid fa-briefcase"></i>
                                 Executive Summary
                             </button>
-                            <button class="ai-btn" id="btn-ai-technical" data-type="technical">
+                            <button class="ai-btn" data-type="technical">
                                 <i class="fa-solid fa-code"></i>
                                 Technical Report
                             </button>
-                            <button class="ai-btn" id="btn-ai-risk" data-type="risk">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            <button class="ai-btn" data-type="risk">
+                                <i class="fa-solid fa-shield-exclamation"></i>
                                 Risk Assessment
                             </button>
-                            <button class="ai-btn primary" id="btn-ai-all" data-type="all">
+                            <button class="ai-btn primary" data-type="all">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                                 Full Analysis
                             </button>
-
                             <select id="ai-language" class="ai-select">
                                 <option value="en">English</option>
                                 <option value="tr">Türkçe</option>
@@ -208,24 +220,21 @@
                         </div>
 
                         <div id="ai-report-container" class="ai-report-container" style="display: none;">
-                            <div class="ai-loading" id="ai-loading" style="display: none;">
+                            <div id="ai-loading" class="ai-loading" style="display: none;">
                                 <div class="ai-spinner"></div>
                                 <span class="ai-loading-text">Neural Analysis in Progress</span>
                                 <span class="ai-loading-sub">AI is analyzing vulnerabilities and generating intelligence
                                     report...</span>
                             </div>
-
-                            <div id="ai-report-content" class="ai-report-content">
-                                <!-- AI Report will be injected here -->
-                            </div>
+                            <div id="ai-report-content" class="ai-report-content"></div>
                         </div>
                     </section>
 
-                    <!-- PoC Generator Modal -->
+                    <!-- PoC Modal -->
                     <div id="poc-modal" class="modal hidden">
                         <div class="modal-content" style="max-width: 800px;">
                             <div class="modal-header">
-                                <h3><i class="fa-solid fa-code"></i> Proof of Concept</h3>
+                                <h3><i class="fa-solid fa-code"></i> Proof of Concept Generator</h3>
                                 <button class="modal-close" id="close-poc-modal">&times;</button>
                             </div>
                             <div class="modal-body">
@@ -242,7 +251,7 @@
                                         HTML</button>
                                 </div>
                                 <pre id="poc-code" class="poc-code"><code></code></pre>
-                                <button class="btn-launch" id="copy-poc" style="margin-top: 1rem;">
+                                <button class="btn-launch" id="copy-poc" style="margin-top: 1rem; width: 100%;">
                                     <i class="fa-solid fa-copy"></i> Copy to Clipboard
                                 </button>
                             </div>
@@ -252,172 +261,286 @@
             </div>
         </div>
 
-        <!-- Archive View -->
+        <!-- ================================= -->
+        <!-- TEMPLATES VIEW - Quick Deploy    -->
+        <!-- ================================= -->
+        <div id="templates-view" class="page-view">
+            <div class="hero-block">
+                <h1>SCAN TEMPLATES</h1>
+                <p>Pre-configured scanning profiles for common security assessment scenarios. Quick deploy with
+                    optimized module combinations.</p>
+            </div>
+
+            <div class="ops-grid" style="grid-template-columns: 1fr;">
+                <!-- Quick Deploy Target -->
+                <div class="target-bay">
+                    <div class="intel-input">
+                        <i class="fa-solid fa-bullseye"></i>
+                        <input type="text" id="template-target-url" placeholder="Enter target URL for template scan"
+                            autocomplete="off">
+                    </div>
+                </div>
+
+                <section class="panel-tactical templates-panel">
+                    <div class="p-header">
+                        <h3>AVAILABLE TEMPLATES</h3>
+                        <div class="actions">
+                            <span id="template-count">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="templates-grid" class="template-grid">
+                        <div style="padding: 2rem; text-align: center; color: var(--text-tertiary); grid-column: 1/-1;">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 1rem;"></i>
+                            <div>Loading scan templates...</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ================================= -->
+        <!-- ARCHIVE VIEW - Scan History      -->
+        <!-- ================================= -->
         <div id="archive-view" class="page-view">
             <div class="hero-block">
-                <h1>MISSION ARCHIVES</h1>
-                <p>Geçmiş operasyon verileri ve stratejik istihbarat raporları.</p>
+                <h1>SCAN HISTORY</h1>
+                <p>Previous security assessments and archived vulnerability reports.</p>
             </div>
+
             <div class="ops-grid" style="grid-template-columns: 1fr;">
-                <div class="panel-tactical" style="padding: 0;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead style="background: rgba(255,255,255,0.03);">
+                <div class="panel-tactical">
+                    <div class="p-header">
+                        <h3>ARCHIVED OPERATIONS</h3>
+                        <div class="actions">
+                            <span id="clear-history" style="color: var(--signal-critical);">Clear All</span>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
                             <tr>
-                                <th
-                                    style="padding: 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                    TARGET</th>
-                                <th
-                                    style="padding: 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                    TIMESTAMP</th>
-                                <th
-                                    style="padding: 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                    FINDINGS</th>
-                                <th
-                                    style="padding: 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                    ENCRYPTION</th>
-                                <th
-                                    style="padding: 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                    ACTIONS</th>
+                                <th>TARGET</th>
+                                <th>TIMESTAMP</th>
+                                <th>FINDINGS</th>
+                                <th>STATUS</th>
+                                <th>ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody id="history-list">
-                            <!-- Items -->
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-tertiary);">
+                                    No scan history available
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Payload DB View -->
+        <!-- ================================= -->
+        <!-- PAYLOAD VIEW - Arsenal           -->
+        <!-- ================================= -->
         <div id="payload-view" class="page-view">
             <div class="hero-block">
-                <h1>RED TEAM ARSENAL</h1>
-                <p>Verified attack vectors and exploitation guides.</p>
+                <h1>PAYLOAD ARSENAL</h1>
+                <p>Curated attack vectors and exploitation guides for security testing.</p>
             </div>
 
-            <div class="ops-grid" style="grid-template-columns: 250px 1fr;">
-                <!-- Categories Sidebar -->
-                <div class="panel-tactical" style="padding: 1rem;">
-                    <h4 class="m-label" style="margin-bottom: 1rem;">CATEGORIES</h4>
+            <div class="ops-grid" style="grid-template-columns: 220px 1fr;">
+                <!-- Categories -->
+                <div class="panel-tactical" style="padding: 1rem; height: fit-content;">
+                    <div class="m-label" style="margin-bottom: 1rem;">CATEGORIES</div>
                     <div class="payload-cats">
-                        <button class="cat-btn active" data-cat="all">ALL VECTOR</button>
+                        <button class="cat-btn active" data-cat="all">ALL VECTORS</button>
                         <button class="cat-btn" data-cat="XSS">XSS</button>
                         <button class="cat-btn" data-cat="SQLi">SQL INJECTION</button>
                         <button class="cat-btn" data-cat="SSRF">SSRF</button>
                         <button class="cat-btn" data-cat="LFI">LFI / RFI</button>
+                        <button class="cat-btn" data-cat="RCE">RCE</button>
+                        <button class="cat-btn" data-cat="XXE">XXE</button>
                     </div>
                 </div>
 
-                <!-- Payloads List -->
-                <div class="panel-tactical" style="padding: 0;">
-                    <div class="payload-list-container">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: rgba(255,255,255,0.03);">
-                                <tr>
-                                    <th
-                                        style="padding: 1rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                        ID</th>
-                                    <th
-                                        style="padding: 1rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                        NAME</th>
-                                    <th
-                                        style="padding: 1rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                        RISK</th>
-                                    <th
-                                        style="padding: 1rem; text-align: left; font-size: 0.7rem; color: var(--text-dim);">
-                                        ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="payload-table-body">
-                                <!-- Payloads Injected Here -->
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- Payloads Table -->
+                <div class="panel-tactical">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAME</th>
+                                <th>RISK</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payload-table-body">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 3rem; color: var(--text-tertiary);">
+                                    Loading payloads...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Payload Details Modal -->
             <div id="payload-modal" class="modal hidden">
-                <div class="modal-content" style="max-width: 700px; border-color: var(--accent-danger);">
+                <div class="modal-content">
                     <div class="modal-header">
-                        <h3 id="pm-title"><i class="fa-solid fa-crosshairs"></i> Payload Guide</h3>
+                        <h3 id="pm-title"><i class="fa-solid fa-crosshairs"></i> Payload Details</h3>
                         <button class="modal-close" id="close-payload-modal">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="pm-section">
-                            <label class="m-label">ATTACK VECTOR</label>
+                            <div class="m-label">ATTACK VECTOR</div>
                             <div class="code-block-dark" id="pm-payload"></div>
                         </div>
-
                         <div class="pm-grid">
                             <div>
-                                <label class="m-label">RISK LEVEL</label>
+                                <div class="m-label">RISK LEVEL</div>
                                 <div id="pm-risk" class="r-sev critical">CRITICAL</div>
                             </div>
                             <div>
-                                <label class="m-label">TARGET PARAMETERS</label>
-                                <div id="pm-params" style="font-family: var(--font-mono); font-size: 0.8rem;">id,
-                                    search, q</div>
+                                <div class="m-label">TARGET PARAMETERS</div>
+                                <div id="pm-params"
+                                    style="font-family: var(--font-mono); font-size: 0.85rem; margin-top: 0.5rem;">
+                                </div>
                             </div>
                         </div>
-
                         <div class="pm-section">
-                            <label class="m-label">EXECUTION GUIDE</label>
-                            <p id="pm-guide" style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted);"></p>
+                            <div class="m-label">EXECUTION GUIDE</div>
+                            <p id="pm-guide"
+                                style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin-top: 0.5rem;">
+                            </p>
                         </div>
-
                         <div class="pm-section">
-                            <label class="m-label" style="color: var(--accent-warning)">EVASION TECHNIQUES</label>
-                            <p id="pm-evasion" style="font-size: 0.9rem; color: var(--text-muted);"></p>
+                            <div class="m-label" style="color: var(--holo-amber);">EVASION TECHNIQUES</div>
+                            <p id="pm-evasion"
+                                style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;"></p>
                         </div>
-
-                        <button id="pm-copy-btn" class="btn-launch" style="width: 100%; margin-top: 1rem;">COPY
-                            PAYLOAD</button>
+                        <button id="pm-copy-btn" class="btn-launch" style="width: 100%; margin-top: 1rem;">
+                            <i class="fa-solid fa-copy"></i> COPY PAYLOAD
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Configuration View -->
+        <!-- ================================= -->
+        <!-- CONFIG VIEW - Settings           -->
+        <!-- ================================= -->
         <div id="config-view" class="page-view">
             <div class="hero-block">
-                <h1>CORE CONFIG</h1>
-                <p>SENTINEL motorunun ağ ve sızma parametrelerini optimize edin.</p>
+                <h1>CONFIGURATION</h1>
+                <p>Optimize scanner parameters and security bypass settings.</p>
             </div>
-            <div class="ops-grid" style="grid-template-columns: 1fr 1fr;">
+
+            <div class="ops-grid">
+                <!-- Network Settings -->
                 <div class="panel-tactical" style="padding: 2rem;">
-                    <h3 style="margin-bottom: 2rem;">NETWORK INTEL</h3>
+                    <h3 style="margin-bottom: 2rem; font-family: var(--font-display); letter-spacing: 0.1em;">NETWORK
+                        PARAMETERS</h3>
+
                     <div style="margin-bottom: 1.5rem;">
-                        <label class="m-label">Request Timeout (ms)</label>
-                        <input type="number" id="config-timeout" value="30000" class="intel-input"
-                            style="width: 100%; margin-top: 0.5rem; padding: 0.8rem;">
+                        <div class="m-label">Request Timeout (seconds)</div>
+                        <input type="number" id="config-timeout" value="30" class="intel-input"
+                            style="width: 100%; margin-top: 0.5rem; padding: 0.75rem 1rem;">
                     </div>
-                    <div>
-                        <label class="m-label">Concurrent Threads</label>
-                        <input type="range" id="config-concurrent" min="1" max="100" value="10"
-                            style="width: 100%; margin-top: 1rem;">
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <div class="m-label">Rate Limit (req/sec)</div>
+                        <input type="number" id="config-rate-limit" value="10" class="intel-input"
+                            style="width: 100%; margin-top: 0.5rem; padding: 0.75rem 1rem;">
                     </div>
-                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                        <button id="save-config-btn" class="btn-launch"
-                            style="background: var(--accent-success); width: auto;">
-                            SAVE CONFIGURATION
-                        </button>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <div class="m-label">Concurrent Threads: <span id="concurrent-value">10</span></div>
+                        <input type="range" id="config-concurrent" min="1" max="50" value="10"
+                            style="width: 100%; margin-top: 0.75rem;">
+                    </div>
+
+                    <button id="save-config-btn" class="btn-launch"
+                        style="width: 100%; background: var(--holo-electric);">
+                        <i class="fa-solid fa-save"></i> SAVE CONFIGURATION
+                    </button>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="panel-tactical" style="padding: 2rem;">
+                    <h3 style="margin-bottom: 2rem; font-family: var(--font-display); letter-spacing: 0.1em;">SECURITY
+                        BYPASS</h3>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--void-elevated); border-radius: var(--radius-md); margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">WAF Evasion Mode</div>
+                            <div class="m-label">Enable advanced WAF bypass techniques</div>
+                        </div>
+                        <div id="waf-toggle" class="mod-unit active"
+                            style="padding: 0.5rem 1rem; grid-template-columns: auto; cursor: pointer; width: auto;">
+                            <div class="mod-check"></div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--void-elevated); border-radius: var(--radius-md); margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">User-Agent Rotation</div>
+                            <div class="m-label">Randomize browser fingerprints</div>
+                        </div>
+                        <div id="ua-toggle" class="mod-unit active"
+                            style="padding: 0.5rem 1rem; grid-template-columns: auto; cursor: pointer; width: auto;">
+                            <div class="mod-check"></div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--void-elevated); border-radius: var(--radius-md);">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">SSL Verification</div>
+                            <div class="m-label">Verify SSL certificates</div>
+                        </div>
+                        <div id="ssl-toggle" class="mod-unit"
+                            style="padding: 0.5rem 1rem; grid-template-columns: auto; cursor: pointer; width: auto;">
+                            <div class="mod-check"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="panel-tactical" style="padding: 2rem;">
-                    <h3 style="margin-bottom: 2rem;">SECURITY BYPASS</h3>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label class="m-label">Enhanced WAF Evasion</label>
-                        <div id="waf-evasion-toggle" class="mod-unit active"
-                            style="padding: 0.5rem 1rem; grid-template-columns: auto 1fr; cursor: pointer;">
-                            <div class="mod-check"></div>
-                            <span class="m-label">ENABLED</span>
+
+                <!-- System Info -->
+                <div class="panel-tactical" style="padding: 2rem; grid-column: 1 / -1;">
+                    <h3 style="margin-bottom: 1.5rem; font-family: var(--font-display); letter-spacing: 0.1em;">SYSTEM
+                        INFORMATION</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="padding: 1rem; background: var(--void-elevated); border-radius: var(--radius-md);">
+                            <div class="m-label">Version</div>
+                            <div style="font-family: var(--font-display); font-size: 1.5rem; margin-top: 0.5rem;">5.0.0
+                            </div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--void-elevated); border-radius: var(--radius-md);">
+                            <div class="m-label">Modules</div>
+                            <div style="font-family: var(--font-display); font-size: 1.5rem; margin-top: 0.5rem;">48
+                            </div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--void-elevated); border-radius: var(--radius-md);">
+                            <div class="m-label">Compliance</div>
+                            <div style="font-family: var(--font-display); font-size: 1.5rem; margin-top: 0.5rem;">OWASP
+                                2025</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--void-elevated); border-radius: var(--radius-md);">
+                            <div class="m-label">AI Engine</div>
+                            <div id="ai-engine-status"
+                                style="font-family: var(--font-display); font-size: 1.5rem; margin-top: 0.5rem; color: var(--text-tertiary);">
+                                Checking...</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="/static/js/main.js"></script>
 </body>

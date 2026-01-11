@@ -3,9 +3,7 @@ import os
 import asyncio
 from pathlib import Path
 from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
+import logging
 from typing import List, Optional, Dict
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, BackgroundTasks, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -13,6 +11,15 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 import uvicorn
 import json
+
+# Setup basic logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables from .env file
+load_dotenv()
+api_key_status = "FOUND" if os.getenv("GOOGLE_AI_API_KEY") else "MISSING"
+logger.info(f"AI CONFIGURATION STATUS: GOOGLE_AI_API_KEY is {api_key_status}")
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -34,6 +41,10 @@ class ScanManager:
         self.engine = ScannerEngine(self.config)
         self.connected_clients: List[WebSocket] = []
         self.last_scan_results: Dict[str, dict] = {}  # Store results for AI analysis
+        
+        # Initialize persistent storage
+        from src.core.scan_repository import get_memory_store
+        self.store = get_memory_store()
 
     async def broadcast(self, data: dict):
         disconnected_clients = []
@@ -49,6 +60,27 @@ class ScanManager:
         for client in disconnected_clients:
             if client in self.connected_clients:
                 self.connected_clients.remove(client)
+    
+    def save_scan_results(self, scan_id: str, url: str, modules: list, results: list):
+        """Save scan results to persistent storage."""
+        scan_data = {
+            "scan_id": scan_id,
+            "url": url,
+            "modules": modules,
+            "results": results,
+            "vulnerability_count": sum(len(r.get("vulnerabilities", [])) for r in results),
+            "completed_at": asyncio.get_event_loop().time() if asyncio.get_event_loop().is_running() else 0,
+        }
+        self.store.save_scan(scan_id, scan_data)
+        self.last_scan_results[scan_id] = scan_data
+    
+    def get_scan_results(self, scan_id: str) -> dict | None:
+        """Get scan results from storage."""
+        return self.store.get_scan(scan_id) or self.last_scan_results.get(scan_id)
+    
+    def get_recent_scans(self, limit: int = 50) -> list:
+        """Get recent scans."""
+        return self.store.get_recent_scans(limit)
 
 scan_manager = ScanManager()
 
@@ -78,6 +110,75 @@ async def get_modules():
         })
     return modules
 
+
+# =============================================
+# SCAN TEMPLATES ENDPOINTS
+# =============================================
+
+@app.get("/api/templates")
+async def get_scan_templates(category: Optional[str] = None, tag: Optional[str] = None):
+    """Get available scan templates/presets."""
+    from src.core.scan_templates import get_template_manager
+    
+    manager = get_template_manager()
+    
+    if category:
+        templates = manager.get_templates_by_category(category)
+    elif tag:
+        templates = manager.get_templates_by_tag(tag)
+    else:
+        templates = manager.get_all_templates()
+    
+    return {
+        "templates": templates,
+        "count": len(templates),
+        "categories": manager.get_categories()
+    }
+
+@app.get("/api/templates/{template_id}")
+async def get_template_details(template_id: str):
+    """Get details of a specific scan template."""
+    from src.core.scan_templates import get_template_manager
+    
+    manager = get_template_manager()
+    template = manager.get_template_dict(template_id)
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return template
+
+@app.post("/api/scan/start/template/{template_id}")
+async def start_scan_from_template(template_id: str, url: str, background_tasks: BackgroundTasks):
+    """Start a scan using a predefined template."""
+    from src.core.scan_templates import get_template_manager
+    
+    manager = get_template_manager()
+    template = manager.get_template(template_id)
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+    
+    scan_id = str(len(scan_manager.active_scans) + 1)
+    scan_manager.active_scans[scan_id] = {
+        "url": url,
+        "status": "starting",
+        "results": [],
+        "progress": 0,
+        "template": template_id
+    }
+    
+    background_tasks.add_task(run_scan_task, scan_id, url, template.modules)
+    return {
+        "scan_id": scan_id,
+        "message": f"Scan started with template: {template.name}",
+        "template": template_id,
+        "modules": template.modules
+    }
+
 @app.post("/api/scan/start")
 async def start_scan(request: ScanRequest, background_tasks: BackgroundTasks):
     url = request.url
@@ -101,7 +202,9 @@ async def get_settings():
         "timeout": scan_manager.config.network.timeout,
         "rate_limit": scan_manager.config.network.rate_limit,
         "concurrent_requests": scan_manager.config.scanner.concurrent_requests,
-        "evasion_enabled": True, # Standard for now
+        "waf_evasion": getattr(scan_manager.config.scanner, 'enable_waf_bypass', False),
+        "ua_rotation": getattr(scan_manager.config.scanner, 'enable_ua_rotation', True),
+        "ssl_verification": getattr(scan_manager.config.network, 'verify_ssl', True),
         "ai_enabled": bool(os.getenv("GOOGLE_AI_API_KEY"))
     }
 
@@ -123,13 +226,27 @@ class SettingsUpdate(BaseModel):
     timeout: int
     rate_limit: int
     concurrent_requests: int
+    waf_evasion: Optional[bool] = False
+    ua_rotation: Optional[bool] = True
+    ssl_verification: Optional[bool] = True
 
 @app.post("/api/settings")
 async def update_settings(settings: SettingsUpdate):
     scan_manager.config.network.timeout = settings.timeout
     scan_manager.config.network.rate_limit = settings.rate_limit
     scan_manager.config.scanner.concurrent_requests = settings.concurrent_requests
-    # Re-initialize engine to apply network/concurrency changes
+    
+    if hasattr(scan_manager.config.scanner, 'enable_waf_bypass'):
+        scan_manager.config.scanner.enable_waf_bypass = settings.waf_evasion
+    if hasattr(scan_manager.config.scanner, 'enable_ua_rotation'):
+        scan_manager.config.scanner.enable_ua_rotation = settings.ua_rotation
+    if hasattr(scan_manager.config.network, 'verify_ssl'):
+        scan_manager.config.network.verify_ssl = settings.ssl_verification
+        
+    # Persist the configuration
+    scan_manager.config.save()
+    
+    # Re-initialize engine to apply changes
     scan_manager.engine = ScannerEngine(scan_manager.config)
     return {"message": "Settings updated and engine re-initialized"}
 
@@ -152,6 +269,36 @@ async def get_payload_guide(payload_id: str):
         raise HTTPException(status_code=404, detail="Payload not found")
     return guide
 
+
+# =============================================
+# SCAN HISTORY & RESULTS ENDPOINTS
+# =============================================
+
+@app.get("/api/scans/history")
+async def get_scan_history(limit: int = 50):
+    """Get recent scan history."""
+    scans = scan_manager.get_recent_scans(limit)
+    return {
+        "scans": scans,
+        "count": len(scans)
+    }
+
+@app.get("/api/scans/{scan_id}")
+async def get_scan_details(scan_id: str):
+    """Get details of a specific scan."""
+    scan = scan_manager.get_scan_results(scan_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return scan
+
+@app.delete("/api/scans/{scan_id}")
+async def delete_scan(scan_id: str):
+    """Delete a scan from history."""
+    if scan_manager.store.delete_scan(scan_id):
+        if scan_id in scan_manager.last_scan_results:
+            del scan_manager.last_scan_results[scan_id]
+        return {"message": "Scan deleted successfully"}
+    raise HTTPException(status_code=404, detail="Scan not found")
 
 # =============================================
 # EXTERNAL TOOLS ENDPOINTS (Nmap, Nikto, etc.)
@@ -372,8 +519,10 @@ async def get_ai_status():
     api_key = os.getenv("GOOGLE_AI_API_KEY")
     return {
         "available": bool(api_key),
-        "provider": "gemini" if api_key else None,
-        "model": os.getenv("AI_MODEL", "models/gemini-2.0-flash")
+        "enabled": bool(api_key),
+        "key_preview": f"{api_key[:4]}...{api_key[-4:]}" if api_key and len(api_key) > 8 else "INVALID",
+        "provider": os.getenv("AI_PROVIDER", "gemini"),
+        "model": os.getenv("AI_MODEL", "models/gemini-1.5-flash")
     }
 
 @app.post("/api/ai/generate")
@@ -513,6 +662,30 @@ async def run_scan_task(scan_id: str, url: str, modules: List[str]):
             # This is called from various threads/loops, ensuring broadcast is safe
             pass 
 
+        async def module_result_callback(r):
+            vulns = []
+            for v in r.vulnerabilities:
+                vuln_dict = {
+                    "title": v.get('title', 'Unknown Issue'),
+                    "severity": v.get('severity', 'info'),
+                    "description": v.get('description', ''),
+                    "remediation": v.get('remediation', ''),
+                    "evidence": v.get('evidence', {}),
+                    "type": v.get('type', 'unknown'),
+                    "cvss_score": v.get('cvss_score', 0),
+                    "cvss_vector": v.get('cvss_vector', ''),
+                    "cwe_id": v.get('cwe_id', '')
+                }
+                vulns.append(vuln_dict)
+            
+            await scan_manager.broadcast({
+                "type": "module_result",
+                "scan_id": scan_id,
+                "module": r.module_name,
+                "status": r.status,
+                "vulnerabilities": vulns
+            })
+
         results = await scan_manager.engine.scan_target(
             url, 
             modules, 
@@ -524,7 +697,8 @@ async def run_scan_task(scan_id: str, url: str, modules: List[str]):
                     "status": s,
                     "percentage": p
                 })
-            )
+            ),
+            result_callback=module_result_callback
         )
         
         # Prepare results for JSON serialization

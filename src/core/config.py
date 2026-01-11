@@ -32,6 +32,7 @@ class ScannerConfig:
     max_payloads_per_module: int = 100
     enable_advanced_detection: bool = True
     enable_waf_bypass: bool = False
+    enable_ua_rotation: bool = True
     enable_false_positive_reduction: bool = True
     scan_depth: int = 3
 
@@ -166,6 +167,7 @@ class Config:
                 "max_payloads_per_module": 100,
                 "enable_advanced_detection": True,
                 "enable_waf_bypass": False,
+                "enable_ua_rotation": True,
                 "enable_false_positive_reduction": True,
                 "scan_depth": 3,
             },

@@ -135,8 +135,8 @@ async def test_scanner_engine_initialization(mock_config):
     """Test scanner engine initialization."""
     engine = ScannerEngine(mock_config)
     assert len(engine.modules) > 0
-    assert "xss" in engine.modules
-    assert "sqli" in engine.modules
+    assert "xss_scanner" in engine.modules
+    assert "sqli_scanner" in engine.modules
 
 
 def test_vulnerability_creation():

@@ -45,3 +45,10 @@ __all__ = [
     "ModuleError",
     "ValidationError",
 ]
+
+# Lazy imports to avoid circular dependencies
+def get_celery_app():
+    """Get Celery application instance."""
+    from .celery_app import app
+    return app
+

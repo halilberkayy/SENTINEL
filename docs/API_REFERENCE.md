@@ -199,6 +199,75 @@ GET /api/results/{scan_id}/export?format={format}
 
 ---
 
+### Scan History
+
+#### Get Scan History
+
+```http
+GET /api/scans/history?limit=50
+```
+
+Returns recent scan history.
+
+**Query Parameters:**
+- `limit`: Maximum number of scans to return (default: 50)
+
+**Response:**
+
+```json
+{
+  "scans": [
+    {
+      "scan_id": "1",
+      "url": "https://example.com",
+      "modules": ["xss_scanner", "sqli_scanner"],
+      "vulnerability_count": 5,
+      "completed_at": "2026-01-11T02:30:00Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+#### Get Scan Details
+
+```http
+GET /api/scans/{scan_id}
+```
+
+Returns detailed information about a specific scan.
+
+**Response:**
+
+```json
+{
+  "scan_id": "1",
+  "url": "https://example.com",
+  "modules": ["xss_scanner", "sqli_scanner"],
+  "results": [...],
+  "vulnerability_count": 5,
+  "completed_at": "2026-01-11T02:30:00Z"
+}
+```
+
+#### Delete Scan
+
+```http
+DELETE /api/scans/{scan_id}
+```
+
+Deletes a scan from history.
+
+**Response:**
+
+```json
+{
+  "message": "Scan deleted successfully"
+}
+```
+
+---
+
 ### AI Reports
 
 #### Generate AI Report

@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let vulnCounter = 0;
     let currentScanId = null;
     let currentPocData = null;
+    let currentScanResults = []; // Store real-time results
     let scanHistory = JSON.parse(localStorage.getItem('sentinel_archives') || '[]');
     const launchTime = Date.now();
 
@@ -48,13 +49,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const closePocModal = document.getElementById('close-poc-modal');
     const copyPocBtn = document.getElementById('copy-poc');
 
+    // 0. Notification System (Toasts)
+    function showToast(message, title = 'SECURITY ALERT', type = 'info', duration = 5000) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const icons = {
+            'success': 'fa-circle-check',
+            'error': 'fa-triangle-exclamation',
+            'warning': 'fa-circle-exclamation',
+            'info': 'fa-circle-info'
+        };
+
+        toast.innerHTML = `
+            <div class="toast-icon"><i class="fa-solid ${icons[type] || icons.info}"></i></div>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-msg">${message}</div>
+            </div>
+            <div class="toast-close" style="cursor:pointer; opacity:0.5;">&times;</div>
+        `;
+
+        container.appendChild(toast);
+
+        const closeToast = () => {
+            toast.classList.add('closing');
+            setTimeout(() => toast.remove(), 400);
+        };
+
+        toast.querySelector('.toast-close').onclick = closeToast;
+        if (duration > 0) setTimeout(closeToast, duration);
+    }
+
+    // Replace window alert with our custom toast
+    window.cyberAlert = (msg, title, type = 'warning') => showToast(msg, title, type);
+
     // 1. Tactical HUD Timer
     setInterval(() => {
         const diff = Date.now() - launchTime;
         const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
         const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
         const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-        hudClock.innerText = `${h}:${m}:${s}`;
+        if (hudClock) hudClock.innerText = `${h}:${m}:${s}`;
     }, 1000);
 
     // 2. Mission Control - View Switching
@@ -68,10 +107,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             link.classList.add('active');
             const view = document.getElementById(target);
-            view.classList.add('active');
+            if (view) view.classList.add('active');
 
-            if (target === 'archive-view') renderArchives();
-            if (target === 'payload-view') renderPayloads('all');
+            // Load view-specific data
+            if (target === 'archive-view') loadScanHistory();
+            if (target === 'payload-view') {
+                renderPayloads('all');
+                setTimeout(initPayloadCategories, 100); // Reinitialize categories
+            }
+            if (target === 'templates-view') loadTemplates();
+            if (target === 'config-view') loadSettings();
         });
     });
 
@@ -144,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 modulesGrid.appendChild(unit);
             });
         } catch (err) {
-            log('PLATFORM', 'Core synchronization failure.', 'error');
+            log('PLATFORM', 'Çekirdek senkronizasyon hatası.', 'error');
+            showToast('Modül matrisi yüklenemedi. Sunucu bağlantısını kontrol edin.', 'SİSTEM HATASI', 'error');
         }
     }
 
@@ -165,16 +211,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // 5. Encrypted Comms (WebSocket)
+    // 5. Encrypted Comms (WebSocket) with Robust Reconnection
+    let wsReconnectAttempts = 0;
+    const WS_MAX_RECONNECT_ATTEMPTS = 10;
+    const WS_BASE_DELAY = 1000; // 1 second
+    const WS_MAX_DELAY = 30000; // 30 seconds max
+
     function establishLink() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
-        ws.onmessage = (event) => processIntel(JSON.parse(event.data));
-        ws.onclose = () => {
-            log('SYSTEM', 'Mission link terminal. Re-engaging...', 'error');
-            setTimeout(establishLink, 5000);
-        };
+        try {
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+
+            ws.onopen = () => {
+                wsReconnectAttempts = 0; // Reset on successful connection
+                log('SYSTEM', 'Secure link established.', 'success');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    processIntel(JSON.parse(event.data));
+                } catch (e) {
+                    log('SYSTEM', 'Sunucu mesajı ayrıştırılamadı.', 'error');
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onclose = (event) => {
+                if (event.wasClean) {
+                    log('SYSTEM', 'Connection closed cleanly.', 'sys');
+                } else {
+                    log('SYSTEM', 'Bağlantı kesildi. Yeniden bağlanılıyor...', 'error');
+                }
+
+                // Exponential backoff reconnection
+                if (wsReconnectAttempts < WS_MAX_RECONNECT_ATTEMPTS) {
+                    wsReconnectAttempts++;
+                    const delay = Math.min(WS_BASE_DELAY * Math.pow(2, wsReconnectAttempts - 1), WS_MAX_DELAY);
+                    log('SYSTEM', `Yeniden bağlanma denemesi ${wsReconnectAttempts}/${WS_MAX_RECONNECT_ATTEMPTS} - ${delay / 1000}s içinde...`, 'sys');
+                    setTimeout(establishLink, delay);
+                } else {
+                    log('SYSTEM', 'Maksimum yeniden bağlanma denemesine ulaşıldı. Sayfayı yenileyin.', 'error');
+                }
+            };
+        } catch (e) {
+            log('SYSTEM', 'Failed to create WebSocket connection.', 'error');
+            setTimeout(establishLink, WS_BASE_DELAY);
+        }
     }
 
     establishLink();
@@ -194,11 +280,23 @@ document.addEventListener('DOMContentLoaded', () => {
             progressPercent.innerText = `${Math.round(data.percentage)}%`;
             progressLine.style.width = `${data.percentage}%`;
             log(data.module, data.status, 'sys');
+        } else if (data.type === 'module_result') {
+            // Add to our real-time collection
+            currentScanResults.push(data);
+            renderIncidents(currentScanResults);
+
+            // Log if vulnerabilities were found
+            if (data.vulnerabilities && data.vulnerabilities.length > 0) {
+                log(data.module, `${data.vulnerabilities.length} adet zafiyet tespit edildi!`, 'error');
+            }
         } else if (data.type === 'complete') {
-            log('COMMAND', 'Strategic objectives achieved. Reporting clear.', 'success');
-            activeModEl.innerText = 'SECURED';
+            log('COMMAND', 'Stratejik hedeflere ulaşıldı. Raporlama temiz.', 'success');
+            activeModEl.innerText = 'GÜVENLİ';
             progressLine.style.width = '100%';
             currentScanId = data.scan_id;
+
+            // Final render to ensure everything is in order (including chaining results)
+            currentScanResults = data.results;
             renderIncidents(data.results);
 
             // Show AI panel always after scan completion
@@ -755,81 +853,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('sentinel_archives', JSON.stringify(scanHistory));
     }
 
-    // Config Management Logic
-    const wafToggle = document.getElementById('waf-evasion-toggle');
-    const timeoutInput = document.getElementById('config-timeout');
-    const concurrentInput = document.getElementById('config-concurrent');
-    const saveConfigBtn = document.getElementById('save-config-btn');
-
-    async function loadConfig() {
-        try {
-            const res = await fetch('/api/settings');
-            const data = await res.json();
-            if (timeoutInput) timeoutInput.value = data.timeout;
-            if (concurrentInput) concurrentInput.value = data.concurrent_requests;
-
-            // Check AI status
-            const aiRes = await fetch('/api/ai/status');
-            const aiData = await aiRes.json();
-            const aiStatus = document.getElementById('ai-status');
-            if (aiStatus) {
-                if (aiData.available) {
-                    aiStatus.innerHTML = `<span class="pulse-indicator" style="background: #8b5cf6;">READY - ${aiData.provider}</span>`;
-                } else {
-                    aiStatus.innerHTML = `<span class="pulse-indicator" style="background: var(--accent-danger);">NOT CONFIGURED</span>`;
-                }
-            }
-        } catch (err) {
-            log('SYSTEM', 'Failed to pull engine configuration.', 'error');
-        }
-    }
-
-    if (saveConfigBtn) {
-        saveConfigBtn.onclick = async () => {
-            const payload = {
-                timeout: parseInt(timeoutInput.value),
-                concurrent_requests: parseInt(concurrentInput.value),
-                rate_limit: 10
-            };
-            try {
-                const res = await fetch('/api/settings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    log('SYSTEM', 'Engine parameters updated and locked.', 'success');
-                    saveConfigBtn.innerHTML = 'CONFIGURATION SECURED';
-                    setTimeout(() => saveConfigBtn.innerHTML = 'SAVE CONFIGURATION', 2000);
-                }
-            } catch (err) {
-                log('CRITICAL', 'Failed to push configuration to engine.', 'error');
-            }
-        };
-    }
-
-    if (wafToggle) {
-        wafToggle.onclick = () => {
-            const label = wafToggle.querySelector('.m-label');
-            const isActive = wafToggle.classList.contains('active');
-            if (isActive) {
-                wafToggle.classList.remove('active');
-                label.innerText = 'DISABLED';
-                log('SECURITY', 'WAF evasion protocols deactivated.', 'error');
-            } else {
-                wafToggle.classList.add('active');
-                label.innerText = 'ENABLED';
-                log('SECURITY', 'Enhanced WAF evasion protocols engaged.', 'success');
-            }
-        };
-    }
-
-    // Trigger config load when navigating to config view
-    navLinks.forEach(link => {
-        if (link.getAttribute('data-target') === 'config-view') {
-            link.addEventListener('click', loadConfig);
-        }
-    });
+    // Trigger config load when navigating to config view - handled by loadSettings now
 
     function renderArchives() {
         archiveList.innerHTML = '';
@@ -860,14 +884,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Platform Initialization
-    loadConfig();
     renderArchives();
 
     // 7. Tactical Launch Bridge
     startBtn.onclick = async () => {
         const url = targetUrlInput.value.trim();
-        if (!url) return alert('MISSION BLOCKED: Target parameters missing.');
-        if (selectedModules.size === 0) return alert('MISSION BLOCKED: No tactical resources allocated.');
+        if (!url) {
+            showToast('Lütfen geçerli bir hedef URL girin.', 'HATA', 'error');
+            return;
+        }
+        if (selectedModules.size === 0) return showToast('Taktiksel modül seçilmedi. Operasyon iptal edildi.', 'GÖREV ENGELLENDİ', 'error');
 
         startBtn.disabled = true;
         startBtn.innerHTML = '<i class="fa-solid fa-satellite-dish fa-spin"></i> ENGAGING...';
@@ -878,9 +904,15 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSection.scrollIntoView({ behavior: 'smooth' });
 
         logViewer.innerHTML = '';
+        // Reset state for new scan
+        currentScanResults = [];
         findingsGrid.innerHTML = '';
         vulnCounter = 0;
         vulnCountEl.innerText = '0';
+        if (vulnChart) {
+            vulnChart.data.datasets[0].data = [0, 0, 0, 0, 0];
+            vulnChart.update();
+        }
         activeModEl.innerText = 'INITIALIZING';
         progressLine.style.width = '0%';
 
@@ -895,44 +927,54 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await response.json();
             currentScanId = data.scan_id;
-            log('CENTCOM', 'Mission parameters verified. Tactical assessment launched.', 'success');
+            log('CENTCOM', `Görev parametreleri doğrulandı. Tarama başlatıldı: ${url}`, 'success');
         } catch (err) {
-            log('CRITICAL', 'Assessment engine connection dropped.', 'error');
+            log('CRITICAL', 'Tarama motoru bağlantısı koptu.', 'error');
+            showToast('Tarama motoru ile iletişim kurulamıyor.', 'KRİTİK HATA', 'error');
         } finally {
             startBtn.disabled = false;
             startBtn.innerHTML = 'LAUNCH ASSESSMENT';
         }
     };
     // 8. Payload Database Logic
-    const payloadTableBody = document.getElementById('payload-table-body');
     const payloadModal = document.getElementById('payload-modal');
     const closePayloadBtn = document.getElementById('close-payload-modal');
     const pmCopyBtn = document.getElementById('pm-copy-btn');
     let currentPayload = null;
 
     async function renderPayloads(category) {
-        if (!payloadTableBody) return;
-        payloadTableBody.innerHTML = '<tr><td colspan="4" style="padding:2rem;text-align:center;">Accessing Arsenal...</td></tr>';
+        // Get element dynamically in case it wasn't available at init
+        const payloadTableBody = document.getElementById('payload-table-body');
+        if (!payloadTableBody) {
+            console.error('Payload table body not found!');
+            return;
+        }
+
+        console.log('Loading payloads for category:', category);
+        payloadTableBody.innerHTML = '<tr><td colspan="4" style="padding:2rem;text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Accessing Arsenal...</td></tr>';
 
         try {
             const url = category === 'all' ? '/api/payloads' : `/api/payloads?category=${category}`;
+            console.log('Fetching from:', url);
             const res = await fetch(url);
             const payloads = await res.json();
+            console.log('Received payloads:', payloads.length);
 
             payloadTableBody.innerHTML = '';
             if (payloads.length === 0) {
-                payloadTableBody.innerHTML = '<tr><td colspan="4" style="padding:2rem;text-align:center;">No vectors found for this category.</td></tr>';
+                payloadTableBody.innerHTML = '<tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-tertiary);">No vectors found for this category.</td></tr>';
                 return;
             }
 
             payloads.forEach(p => {
                 const tr = document.createElement('tr');
+                const riskClass = p.risk ? p.risk.toLowerCase() : 'medium';
                 tr.innerHTML = `
-                    <td style="padding: 1rem; font-family:var(--font-mono); font-size:0.8rem; color:var(--text-dim);">${p.id}</td>
+                    <td style="padding: 1rem; font-family:var(--font-mono); font-size:0.8rem; color:var(--text-tertiary);">${p.id}</td>
                     <td style="padding: 1rem; font-weight:600; color:#fff;">${p.name}</td>
-                    <td style="padding: 1rem;"><div class="r-sev ${p.risk.toLowerCase()}">${p.risk}</div></td>
+                    <td style="padding: 1rem;"><div class="r-sev ${riskClass}">${p.risk || 'Unknown'}</div></td>
                     <td style="padding: 1rem;">
-                        <button class="nav-link guide-btn" data-id="${p.id}" style="padding:0.4rem 0.8rem; font-size:0.7rem; background: var(--accent-primary); border:none;">
+                        <button class="guide-btn" data-id="${p.id}" style="padding:0.5rem 1rem; font-size:0.75rem; background: var(--holo-cyan); color: #000; border:none; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;">
                             <i class="fa-solid fa-book"></i> GUIDE
                         </button>
                     </td>
@@ -942,22 +984,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 payloadTableBody.appendChild(tr);
             });
 
+            log('ARSENAL', `Loaded ${payloads.length} payloads`, 'success');
+
         } catch (err) {
+            console.error('Payload loading error:', err);
             log('SYSTEM', 'Failed to load payload database.', 'error');
-            payloadTableBody.innerHTML = '<tr><td colspan="4" style="padding:2rem;text-align:center;color:red;">Database Connection Failed</td></tr>';
+            payloadTableBody.innerHTML = '<tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--signal-critical);">Database Connection Failed</td></tr>';
         }
     }
 
-    // Category Filter Buttons
-    document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderPayloads(btn.getAttribute('data-cat'));
+    // Category Filter Buttons - Initialize with event delegation
+    function initPayloadCategories() {
+        const catContainer = document.querySelector('.payload-cats');
+        if (!catContainer) {
+            console.warn('Payload categories container not found');
+            return;
+        }
+
+        // Remove existing event listener by replacing the container
+        const newContainer = catContainer.cloneNode(true);
+        catContainer.parentNode.replaceChild(newContainer, catContainer);
+
+        // Add click event listener to all category buttons
+        newContainer.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('Category button clicked:', btn.getAttribute('data-cat'));
+
+                // Update active state
+                newContainer.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Fetch payloads for selected category
+                const category = btn.getAttribute('data-cat');
+                renderPayloads(category);
+            });
         });
+
+        console.log('Payload categories initialized');
+    }
+
+    // Initialize payload categories on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initPayloadCategories, 100);
     });
 
+    // Also call now in case DOM is already ready
+    initPayloadCategories();
+
     async function showPayloadDetails(pid) {
+        console.log('[ARSENAL] Fetching guide for payload:', pid);
         try {
             const res = await fetch(`/api/payloads/${pid}/guide`);
             if (!res.ok) throw new Error('Guide unavailable');
@@ -976,7 +1054,8 @@ document.addEventListener('DOMContentLoaded', () => {
             payloadModal.classList.remove('hidden');
 
         } catch (err) {
-            alert('Could not retrieve mission guide.');
+            console.error('Guide error:', err);
+            showToast('Görev rehberine erişim reddedildi veya rehber bulunamadı.', 'GÖREV HATASI', 'error');
         }
     }
 
@@ -1001,5 +1080,406 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-});
+    // =====================================
+    // SCAN TEMPLATES - Quick Deploy
+    // =====================================
+    async function loadTemplates() {
+        const templatesGrid = document.getElementById('templates-grid');
+        const templateCount = document.getElementById('template-count');
 
+        if (!templatesGrid) return;
+
+        try {
+            const response = await fetch('/api/templates');
+            const data = await response.json();
+
+            if (templateCount) {
+                templateCount.textContent = `${data.count} Templates`;
+            }
+
+            templatesGrid.innerHTML = '';
+
+            data.templates.forEach((template, idx) => {
+                const card = document.createElement('div');
+                card.className = 'template-card';
+                card.style.animationDelay = `${idx * 0.05}s`;
+
+                const intensityClass = `intensity-${template.intensity}`;
+
+                card.innerHTML = `
+                    <h4>${template.name}</h4>
+                    <p>${template.description}</p>
+                    <div class="template-meta">
+                        <span class="template-tag modules">${template.module_count} Modules</span>
+                        <span class="template-tag time">${template.estimated_time}</span>
+                        <span class="template-tag ${intensityClass}">${template.intensity.toUpperCase()}</span>
+                    </div>
+                `;
+
+                card.onclick = () => startTemplateScan(template.id, template.name);
+                templatesGrid.appendChild(card);
+            });
+
+        } catch (err) {
+            log('SYSTEM', 'Failed to load scan templates.', 'error');
+            templatesGrid.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--signal-critical); grid-column: 1/-1;">Failed to load templates</div>';
+        }
+    }
+
+    async function startTemplateScan(templateId, templateName) {
+        const targetInput = document.getElementById('template-target-url');
+        let url = targetInput ? targetInput.value.trim() : '';
+
+        if (!url) {
+            showToast('Geçerli bir hedef URL giriniz.', 'HEDEF EKSİK', 'warning');
+            return;
+        }
+
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+        }
+
+        try {
+            const response = await fetch(`/api/scan/start/template/${templateId}?url=${encodeURIComponent(url)}`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) throw new Error('Failed to start template scan');
+
+            const data = await response.json();
+            log('TEMPLATE', `Started scan with template: ${templateName}`, 'success');
+
+            // Switch to operations view
+            document.querySelector('[data-target="ops-view"]').click();
+
+            // Show results section
+            if (resultsSection) resultsSection.classList.remove('hidden');
+
+        } catch (err) {
+            log('TEMPLATE', err.message, 'error');
+        }
+    }
+
+    // =====================================
+    // SCAN HISTORY - Archives
+    // =====================================
+    async function loadScanHistory() {
+        const historyList = document.getElementById('history-list');
+        if (!historyList) return;
+
+        // First try to load from server API
+        try {
+            const response = await fetch('/api/scans/history?limit=50');
+            const data = await response.json();
+
+            if (data.scans && data.scans.length > 0) {
+                renderHistoryTable(data.scans);
+                return;
+            }
+        } catch (err) {
+            console.log('Server history not available, using local storage');
+        }
+
+        // Fallback to localStorage
+        if (scanHistory.length > 0) {
+            renderHistoryTable(scanHistory);
+        } else {
+            historyList.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-tertiary);">
+                        <i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                        No scan history available
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function renderHistoryTable(scans) {
+        const historyList = document.getElementById('history-list');
+        if (!historyList) return;
+
+        historyList.innerHTML = '';
+
+        scans.forEach(scan => {
+            const tr = document.createElement('tr');
+            const vulnCount = scan.vulnerability_count || scan.vulns || 0;
+            const statusColor = vulnCount > 0 ? 'var(--signal-critical)' : 'var(--holo-electric)';
+            const scanId = scan.scan_id || scan.id || Date.now();
+
+            tr.innerHTML = `
+                <td style="font-family: var(--font-mono); font-size: 0.85rem;">${scan.url || scan.target || 'Unknown'}</td>
+                <td>${scan.timestamp || scan.completed_at || (scan.saved_at ? new Date(scan.saved_at).toLocaleString() : 'N/A')}</td>
+                <td><span style="color: ${statusColor}; font-weight: 700;">${vulnCount}</span></td>
+                <td><span style="color: var(--holo-electric);">COMPLETED</span></td>
+                <td style="display: flex; gap: 0.5rem;">
+                    <button class="r-action-btn view-scan-btn" data-id="${scanId}" data-scan='${JSON.stringify(scan).replace(/'/g, "\\'")}'>
+                        <i class="fa-solid fa-eye"></i> View
+                    </button>
+                    <button class="r-action-btn delete-scan-btn" data-id="${scanId}" style="color: var(--signal-critical);">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+
+            historyList.appendChild(tr);
+        });
+
+        // View scan buttons
+        document.querySelectorAll('.view-scan-btn').forEach(btn => {
+            btn.onclick = () => {
+                const scanId = btn.dataset.id;
+                try {
+                    // Try to get scan data from the button's data attribute
+                    const scanData = btn.dataset.scan ? JSON.parse(btn.dataset.scan) : null;
+                    if (scanData && scanData.results) {
+                        // Switch to operations view
+                        document.querySelector('[data-target="ops-view"]').click();
+
+                        // Show results
+                        if (resultsSection) resultsSection.classList.remove('hidden');
+
+                        // Display the vulnerabilities
+                        if (findingsGrid) {
+                            findingsGrid.innerHTML = '';
+                            const vulns = scanData.results || [];
+                            vulns.forEach(v => {
+                                if (v.vulnerabilities) {
+                                    v.vulnerabilities.forEach(vuln => renderVulnCard(vuln));
+                                }
+                            });
+                        }
+
+                        log('ARCHIVE', `Loaded scan results for ${scanData.url || scanId}`, 'success');
+                    } else {
+                        // Fetch from API
+                        fetchAndDisplayScan(scanId);
+                    }
+                } catch (err) {
+                    console.error('Error viewing scan:', err);
+                    fetchAndDisplayScan(scanId);
+                }
+            };
+        });
+
+        // Delete scan buttons
+        document.querySelectorAll('.delete-scan-btn').forEach(btn => {
+            btn.onclick = async () => {
+                const scanId = btn.dataset.id;
+                if (confirm('Delete this scan from history?')) {
+                    // Remove from localStorage
+                    scanHistory = scanHistory.filter(s => (s.scan_id || s.id) != scanId);
+                    localStorage.setItem('sentinel_archives', JSON.stringify(scanHistory));
+
+                    // Try to delete from server too
+                    try {
+                        await fetch(`/api/scans/${scanId}`, { method: 'DELETE' });
+                    } catch (err) {
+                        console.log('Server delete failed, local delete successful');
+                    }
+
+                    log('ARCHIVE', 'Scan deleted successfully', 'success');
+                    loadScanHistory();
+                }
+            };
+        });
+    }
+
+    // Fetch and display scan from API
+    async function fetchAndDisplayScan(scanId) {
+        try {
+            const response = await fetch(`/api/scans/${scanId}`);
+            if (response.ok) {
+                const data = await response.json();
+                document.querySelector('[data-target="ops-view"]').click();
+                if (resultsSection) resultsSection.classList.remove('hidden');
+                log('ARCHIVE', `Loaded scan ${scanId} from server`, 'success');
+            } else {
+                showToast('Target mission parameters not found in deep storage.', 'MISSION NOT FOUND', 'warning');
+            }
+        } catch (err) {
+            showToast('Protocol failure while retrieving mission data.', 'CRITICAL ERROR', 'error');
+        }
+    }
+
+    // Clear history button
+    const clearHistoryBtn = document.getElementById('clear-history');
+    if (clearHistoryBtn) {
+        clearHistoryBtn.onclick = async () => {
+            if (confirm('Clear all scan history? This cannot be undone.')) {
+                // Clear localStorage
+                scanHistory = [];
+                localStorage.setItem('sentinel_archives', JSON.stringify(scanHistory));
+
+                // Try to clear server history too
+                try {
+                    const response = await fetch('/api/scans/history?limit=100');
+                    const data = await response.json();
+                    if (data.scans) {
+                        for (const scan of data.scans) {
+                            await fetch(`/api/scans/${scan.scan_id || scan.id}`, { method: 'DELETE' });
+                        }
+                    }
+                } catch (err) {
+                    console.log('Server clear failed, local clear successful');
+                }
+
+                log('ARCHIVE', 'All scan history cleared', 'success');
+                loadScanHistory();
+            }
+        };
+    }
+
+    // =====================================
+    // SETTINGS & CONFIG
+    // =====================================
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/settings');
+            const settings = await response.json();
+
+            const timeoutInput = document.getElementById('config-timeout');
+            const rateLimitInput = document.getElementById('config-rate-limit');
+            const concurrentInput = document.getElementById('config-concurrent');
+            const concurrentValue = document.getElementById('concurrent-value');
+            const aiEngineStatus = document.getElementById('ai-engine-status');
+
+            if (timeoutInput) timeoutInput.value = settings.timeout || 30;
+            if (rateLimitInput) rateLimitInput.value = settings.rate_limit || 10;
+            if (concurrentInput) {
+                concurrentInput.value = settings.concurrent_requests || 10;
+                if (concurrentValue) concurrentValue.textContent = settings.concurrent_requests || 10;
+            }
+
+            // Load bypass toggles
+            const wafToggle = document.getElementById('waf-toggle');
+            const uaToggle = document.getElementById('ua-toggle');
+            const sslToggle = document.getElementById('ssl-toggle');
+
+            if (wafToggle) wafToggle.classList.toggle('active', settings.waf_evasion);
+            if (uaToggle) uaToggle.classList.toggle('active', settings.ua_rotation);
+            if (sslToggle) sslToggle.classList.toggle('active', settings.ssl_verification);
+
+            // Check AI status from dedicated endpoint
+            try {
+                const aiResponse = await fetch('/api/ai/status');
+                const aiStatus = await aiResponse.json();
+                console.log('AI System Status:', aiStatus);
+
+                if (aiEngineStatus) {
+                    if (aiStatus.available || aiStatus.enabled) {
+                        aiEngineStatus.textContent = `ACTIVE - ${aiStatus.provider || 'Gemini'}`;
+                        aiEngineStatus.style.color = 'var(--holo-electric)';
+                        aiEngineStatus.style.fontWeight = 'bold';
+                        aiEngineStatus.style.cursor = 'default';
+                        aiEngineStatus.onclick = null;
+
+                        // If it's active, log it
+                        log('SYSTEM', `AI Engine integrated: ${aiStatus.provider || 'Gemini'}`, 'success');
+                    } else {
+                        aiEngineStatus.textContent = 'DISABLED';
+                        aiEngineStatus.style.color = 'var(--text-tertiary)';
+                        aiEngineStatus.style.cursor = 'pointer';
+                        aiEngineStatus.title = 'Click to configure AI';
+                        aiEngineStatus.onclick = () => {
+                            cyberAlert('To enable AI intelligence, ensure GOOGLE_AI_API_KEY is set in your .env and the AI server is running.', 'AI ENGINE CONFIGURATION');
+                        };
+                    }
+                }
+            } catch (aiErr) {
+                if (aiEngineStatus) {
+                    aiEngineStatus.textContent = 'NOT CONFIGURED';
+                    aiEngineStatus.style.color = 'var(--signal-critical)';
+                }
+            }
+
+        } catch (err) {
+            log('CONFIG', 'Failed to load settings.', 'error');
+        }
+    }
+
+    // Concurrent slider value update
+    const concurrentSlider = document.getElementById('config-concurrent');
+    const concurrentValueEl = document.getElementById('concurrent-value');
+    if (concurrentSlider && concurrentValueEl) {
+        concurrentSlider.oninput = () => {
+            concurrentValueEl.textContent = concurrentSlider.value;
+        };
+    }
+
+    // Initialize toggle switches with real functionality
+    function initializeToggles() {
+        const toggles = [
+            document.getElementById('waf-toggle'),
+            document.getElementById('ua-toggle'),
+            document.getElementById('ssl-toggle')
+        ];
+
+        toggles.forEach(toggle => {
+            if (toggle) {
+                toggle.style.cursor = 'pointer';
+                toggle.onclick = (e) => {
+                    e.preventDefault();
+
+                    const isActive = toggle.classList.toggle('active');
+                    const label = toggle.id.replace('-toggle', '').toUpperCase();
+
+                    if (isActive) {
+                        log('CONFIG', `${label} güvenliği atlatma aktif`, 'success');
+                    } else {
+                        log('CONFIG', `${label} güvenliği atlatma pasif`, 'sys');
+                    }
+                };
+            }
+        });
+    }
+
+    // Call toggle initialization
+    initializeToggles();
+
+    // Save config button
+    const saveConfigBtn = document.getElementById('save-config-btn');
+    if (saveConfigBtn) {
+        saveConfigBtn.onclick = async () => {
+            const timeout = parseInt(document.getElementById('config-timeout')?.value) || 30;
+            const rateLimit = parseInt(document.getElementById('config-rate-limit')?.value) || 10;
+            const concurrent = parseInt(document.getElementById('config-concurrent')?.value) || 10;
+
+            const wafEvasion = document.getElementById('waf-toggle')?.classList.contains('active');
+            const uaRotation = document.getElementById('ua-toggle')?.classList.contains('active');
+            const sslVerification = document.getElementById('ssl-toggle')?.classList.contains('active');
+
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        timeout: timeout,
+                        rate_limit: rateLimit,
+                        concurrent_requests: concurrent,
+                        waf_evasion: wafEvasion,
+                        ua_rotation: uaRotation,
+                        ssl_verification: sslVerification
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Küresel konfigürasyon güncellendi.', 'AYARLAR KAYDEDİLDİ', 'success');
+                    saveConfigBtn.innerHTML = '<i class="fa-solid fa-check"></i> KAYDEDİLDİ!';
+                    setTimeout(() => {
+                        saveConfigBtn.innerHTML = '<i class="fa-solid fa-save"></i> KONFİGÜRASYONU KAYDET';
+                    }, 2000);
+                }
+            } catch (err) {
+                showToast('Yerel konfigürasyon komuta merkezi ile senkronize edilemedi.', 'KRİTİK HATA', 'error');
+            }
+        };
+    }
+
+    // =====================================
+    // INITIALIZATION
+    // =====================================
+    initializeMatrix();
+    loadSettings();
+
+});

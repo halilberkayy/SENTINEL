@@ -35,6 +35,9 @@ RUN pip install --upgrade pip && \
 COPY src/ ./src/
 COPY wordlists/ ./wordlists/
 COPY config/ ./config/
+COPY web/ ./web/
+COPY web_app.py ./
+COPY scanner.py ./
 
 # Create necessary directories
 RUN mkdir -p /app/output/reports /app/output/logs /app/output/temp && \

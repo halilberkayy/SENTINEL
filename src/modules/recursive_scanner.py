@@ -149,16 +149,19 @@ class RecursiveScanner(BaseScanner):
             "/test/",
         }
 
-    async def scan(self, progress_callback=None) -> dict:
+    async def scan(self, url: str, progress_callback=None) -> dict:
         """
         Start recursive scanning process.
 
         Args:
+            url: URL to scan
             progress_callback: Optional callback for progress updates
 
         Returns:
             Dictionary containing scan results
         """
+        self.base_url = url.rstrip("/")
+        self.parsed_base = urlparse(url)
         self.stats["start_time"] = time.time()
 
         try:
@@ -166,7 +169,9 @@ class RecursiveScanner(BaseScanner):
             session = await self._create_session()
 
             # Start scanning from base URL
+            self._update_progress(progress_callback, 0, "starting")
             await self._scan_url(session, self.base_url, depth=0, progress_callback=progress_callback)
+            self._update_progress(progress_callback, 100, "completed")
 
             await session.close()
 
@@ -224,14 +229,8 @@ class RecursiveScanner(BaseScanner):
 
                 # Update progress
                 if progress_callback:
-                    progress_callback(
-                        {
-                            "url": url,
-                            "depth": depth,
-                            "pages_scanned": self.stats["pages_scanned"],
-                            "total_found": len(self.discovered_resources),
-                        }
-                    )
+                    percentage = int((self.stats["pages_scanned"] / self.max_pages) * 100)
+                    self._update_progress(progress_callback, min(percentage, 99), f"Exploring: {url[:30]}...")
 
                 # Create resource entry
                 resource = FoundResource(

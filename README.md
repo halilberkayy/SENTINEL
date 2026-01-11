@@ -66,6 +66,13 @@ A production-ready web vulnerability scanner with 48 security modules and full O
 - Rate limiting and WAF evasion capabilities
 - Distributed scanning support via Celery
 
+**v5.0.0 New Features**
+- 📋 **Scan Templates**: 8 predefined scan presets (OWASP Top 10, API Security, Quick Scan, etc.)
+- 📊 **Scan History API**: Persistent scan results with history browsing
+- 🔍 **Enhanced Health Checks**: Detailed component status monitoring
+- 🔄 **Robust WebSocket**: Exponential backoff reconnection
+- ⚡ **Dynamic Module Discovery**: Optional runtime module loading
+
 ---
 
 ## Quick Start

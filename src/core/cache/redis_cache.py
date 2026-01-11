@@ -34,6 +34,15 @@ class CacheManager:
         if self.redis:
             await self.redis.close()
             logger.info("Disconnected from Redis")
+    
+    async def ping(self) -> bool:
+        """Check if Redis is reachable."""
+        if not self.redis:
+            return False
+        try:
+            return await self.redis.ping()
+        except Exception:
+            return False
 
     async def get(self, key: str) -> Any | None:
         """

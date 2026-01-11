@@ -106,7 +106,6 @@ async def global_exception_handler(request: Request, exc: Exception):
         },
     )
 
-
 # Health check endpoint
 @app.get("/health", tags=["System"])
 async def health_check():
@@ -114,6 +113,51 @@ async def health_check():
     return {
         "status": "healthy",
         "version": "5.0.0",
+        "timestamp": structlog.processors.TimeStamper()(None, None, None)["timestamp"],
+    }
+
+
+# Detailed health check with component status
+@app.get("/health/detailed", tags=["System"])
+async def detailed_health_check():
+    """Detailed health check with component status."""
+    components = {
+        "api": {"status": "healthy", "version": "5.0.0"},
+        "database": {"status": "unknown"},
+        "cache": {"status": "unknown"},
+    }
+    
+    overall_healthy = True
+    
+    # Check database
+    try:
+        db_manager = get_db_manager()
+        async with db_manager.session() as session:
+            from sqlalchemy import text
+            await session.execute(text("SELECT 1"))
+        components["database"]["status"] = "healthy"
+    except Exception as e:
+        components["database"]["status"] = "unhealthy"
+        components["database"]["error"] = str(e)
+        overall_healthy = False
+    
+    # Check Redis cache
+    try:
+        from src.core.cache import get_cache_manager
+        cache = get_cache_manager()
+        if await cache.ping():
+            components["cache"]["status"] = "healthy"
+        else:
+            components["cache"]["status"] = "degraded"
+    except Exception as e:
+        components["cache"]["status"] = "unavailable"
+        components["cache"]["error"] = str(e)
+        # Cache is optional, don't fail health check
+    
+    return {
+        "status": "healthy" if overall_healthy else "degraded",
+        "version": "5.0.0",
+        "components": components,
         "timestamp": structlog.processors.TimeStamper()(None, None, None)["timestamp"],
     }
 
@@ -126,7 +170,8 @@ async def readiness_check():
         db_manager = get_db_manager()
         # Simple DB check
         async with db_manager.session() as session:
-            await session.execute("SELECT 1")
+            from sqlalchemy import text
+            await session.execute(text("SELECT 1"))
 
         return {"status": "ready"}
     except Exception as e:
