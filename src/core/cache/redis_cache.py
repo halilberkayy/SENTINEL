@@ -20,14 +20,20 @@ class CacheManager:
         self.redis: aioredis.Redis | None = None
 
     async def connect(self) -> None:
-        """Connect to Redis."""
-        self.redis = await aioredis.from_url(
-            self.redis_url,
-            encoding="utf-8",
-            decode_responses=False,  # We'll handle encoding ourselves
-            max_connections=50,
-        )
-        logger.info(f"Connected to Redis: {self.redis_url}")
+        """Connect to Redis with fallback handling."""
+        try:
+            self.redis = await aioredis.from_url(
+                self.redis_url,
+                encoding="utf-8",
+                decode_responses=False,  # We'll handle encoding ourselves
+                max_connections=50,
+            )
+            # Test connection
+            await self.redis.ping()
+            logger.info(f"Connected to Redis: {self.redis_url}")
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}. Cache will operate in fallback mode (no caching).")
+            self.redis = None
 
     async def disconnect(self) -> None:
         """Disconnect from Redis."""
@@ -55,6 +61,7 @@ class CacheManager:
             Cached value or None if not found
         """
         if not self.redis:
+            logger.debug("Cache unavailable (fallback mode), returning None")
             return None
 
         try:
@@ -63,6 +70,10 @@ class CacheManager:
                 return None
 
             return json.loads(value)
+        except ConnectionError as e:
+            logger.warning(f"Redis connection lost for key '{key}': {e}. Falling back to no cache.")
+            self.redis = None  # Disable cache on connection error
+            return None
         except Exception as e:
             logger.error(f"Cache get error for key '{key}': {e}")
             return None
@@ -80,12 +91,17 @@ class CacheManager:
             True if successful
         """
         if not self.redis:
+            logger.debug("Cache unavailable (fallback mode), skipping set operation")
             return False
 
         try:
             serialized = json.dumps(value)
             await self.redis.set(key, serialized, ex=ttl)
             return True
+        except ConnectionError as e:
+            logger.warning(f"Redis connection lost for key '{key}': {e}. Falling back to no cache.")
+            self.redis = None  # Disable cache on connection error
+            return False
         except Exception as e:
             logger.error(f"Cache set error for key '{key}': {e}")
             return False
@@ -196,10 +212,13 @@ _cache_manager: CacheManager | None = None
 
 
 async def init_cache(redis_url: str) -> CacheManager:
-    """Initialize the global cache manager."""
+    """Initialize the global cache manager with fallback support."""
     global _cache_manager
     _cache_manager = CacheManager(redis_url)
-    await _cache_manager.connect()
+    try:
+        await _cache_manager.connect()
+    except Exception as e:
+        logger.warning(f"Cache initialization failed: {e}. Application will continue without caching.")
     return _cache_manager
 
 

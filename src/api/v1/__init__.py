@@ -46,7 +46,19 @@ router = APIRouter()
 # Auth routes
 @router.post("/auth/login", response_model=TokenResponse, tags=["Authentication"])
 async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """Authenticate user and return JWT token."""
+    """
+    Authenticate user and return JWT token.
+    
+    Args:
+        credentials: User login credentials (username and password)
+        db: Database session
+        
+    Returns:
+        TokenResponse: JWT access token with expiration time
+        
+    Raises:
+        HTTPException: 401 if credentials are invalid
+    """
     # Get user from database
     result = await db.execute(select(UserModel).where(UserModel.username == credentials.username))
     user_model = result.scalar_one_or_none()
@@ -82,7 +94,19 @@ async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/auth/register", response_model=UserResponse, tags=["Authentication"])
 async def register(user_data: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    """Register a new user."""
+    """
+    Register a new user account.
+    
+    Args:
+        user_data: User registration data (username, email, password, role)
+        db: Database session
+        
+    Returns:
+        UserResponse: Created user information
+        
+    Raises:
+        HTTPException: 400 if username or email already exists
+    """
     # Check if user exists
     result = await db.execute(
         select(UserModel).where((UserModel.username == user_data.username) | (UserModel.email == user_data.email))
@@ -168,7 +192,22 @@ async def run_scan_background(scan_id: str, target_url: str, modules: list):
 async def create_scan(
     scan_request: ScanRequest, request: Request, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)
 ):
-    """Create a new vulnerability scan job."""
+    """
+    Create and start a new vulnerability scan job.
+    
+    Args:
+        scan_request: Scan configuration (target URL, modules, options)
+        request: HTTP request context
+        background_tasks: FastAPI background tasks
+        db: Database session
+        
+    Returns:
+        ScanResponse: Created scan job information
+        
+    Note:
+        The scan executes asynchronously in the background.
+        Use GET /scans/{scan_id} to check status and results.
+    """
     user_id = request.state.user_id
 
     # Create scan job
@@ -193,7 +232,17 @@ async def create_scan(
 
 @router.get("/scans", response_model=list[ScanResponse], tags=["Scans"])
 async def list_scans(request: Request, pagination: PaginationParams = Depends(), db: AsyncSession = Depends(get_db)):
-    """List all scan jobs for the authenticated user."""
+    """
+    List all scan jobs for the authenticated user.
+    
+    Args:
+        request: HTTP request context
+        pagination: Pagination parameters (page, page_size)
+        db: Database session
+        
+    Returns:
+        List[ScanResponse]: List of scan jobs ordered by creation date (newest first)
+    """
     user_id = request.state.user_id
 
     offset = (pagination.page - 1) * pagination.page_size
@@ -212,7 +261,20 @@ async def list_scans(request: Request, pagination: PaginationParams = Depends(),
 
 @router.get("/scans/{scan_id}", response_model=ScanResponse, tags=["Scans"])
 async def get_scan(scan_id: str, request: Request, db: AsyncSession = Depends(get_db)):
-    """Get a specific scan by ID."""
+    """
+    Get detailed information about a specific scan.
+    
+    Args:
+        scan_id: Unique scan identifier
+        request: HTTP request context
+        db: Database session
+        
+    Returns:
+        ScanResponse: Scan job details including status and metadata
+        
+    Raises:
+        HTTPException: 404 if scan not found or user doesn't have access
+    """
     user_id = request.state.user_id
 
     result = await db.execute(select(ScanJob).where((ScanJob.id == scan_id) & (ScanJob.user_id == user_id)))
@@ -228,7 +290,21 @@ async def get_scan(scan_id: str, request: Request, db: AsyncSession = Depends(ge
 async def get_scan_vulnerabilities(
     scan_id: str, request: Request, severity: str = None, db: AsyncSession = Depends(get_db)
 ):
-    """Get vulnerabilities for a specific scan."""
+    """
+    Get all vulnerabilities found in a specific scan.
+    
+    Args:
+        scan_id: Unique scan identifier
+        request: HTTP request context
+        severity: Optional filter by severity (critical, high, medium, low, info)
+        db: Database session
+        
+    Returns:
+        List[VulnerabilityResponse]: List of vulnerabilities with details
+        
+    Raises:
+        HTTPException: 404 if scan not found or user doesn't have access
+    """
     user_id = request.state.user_id
 
     # Verify scan ownership
@@ -253,7 +329,16 @@ async def get_scan_vulnerabilities(
 # Stats route
 @router.get("/stats", response_model=StatsResponse, tags=["System"])
 async def get_stats(request: Request, db: AsyncSession = Depends(get_db)):
-    """Get system statistics."""
+    """
+    Get system-wide statistics and metrics.
+    
+    Args:
+        request: HTTP request context
+        db: Database session
+        
+    Returns:
+        StatsResponse: System statistics including scan counts, vulnerabilities, users, and plugins
+    """
     # Total scans
     total_scans_result = await db.execute(select(func.count(ScanJob.id)))
     total_scans = total_scans_result.scalar()

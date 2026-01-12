@@ -88,3 +88,47 @@ class PayloadError(ScannerException):
     """
 
     pass
+
+
+class DatabaseError(ScannerException):
+    """
+    Database operation errors.
+
+    Raised when database operations fail, including connection errors,
+    query execution failures, or transaction rollback issues.
+    """
+
+    pass
+
+
+class CacheError(ScannerException):
+    """
+    Cache operation errors.
+
+    Raised when cache operations fail, including Redis connection errors,
+    serialization failures, or cache invalidation issues.
+    """
+
+    pass
+
+
+class AuthenticationError(ScannerException):
+    """
+    Authentication and authorization errors.
+
+    Raised when authentication fails, tokens are invalid or expired,
+    or users lack required permissions.
+    """
+
+    pass
+
+
+class RateLimitError(ScannerException):
+    """
+    Rate limiting errors.
+
+    Raised when rate limits are exceeded or rate limiting
+    configuration is invalid.
+    """
+
+    pass

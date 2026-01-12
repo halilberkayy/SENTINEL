@@ -568,7 +568,7 @@ async def generate_ai_report_task(scan_id: str, scan_results: dict, report_type:
         config = NarratorConfig(
             provider=AIProvider.GEMINI,
             api_key=os.getenv("GOOGLE_AI_API_KEY"),
-            model=os.getenv("AI_MODEL", "models/gemini-2.0-flash"),
+            model=os.getenv("AI_MODEL", "models/gemini-3-flash-preview"),
             language=language
         )
         

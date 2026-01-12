@@ -38,7 +38,7 @@ class NarratorConfig:
 
     provider: AIProvider = AIProvider.GEMINI
     api_key: str | None = None
-    model: str = "models/gemini-2.0-flash"  # Default Gemini model
+    model: str = "models/gemini-3-flash-preview"  # Default Gemini model
     temperature: float = 0.7
     max_tokens: int = 4096
     language: str = "en"  # en, tr, de, fr, es
@@ -497,7 +497,7 @@ async def generate_ai_summary(
     scan_data: dict[str, Any],
     provider: str = "gemini",
     api_key: str | None = None,
-    model: str = "models/gemini-2.0-flash",
+    model: str = "models/gemini-3-flash-preview",
     language: str = "en",
 ) -> dict[str, str]:
     """

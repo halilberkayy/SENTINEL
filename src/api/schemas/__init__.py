@@ -8,6 +8,33 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
+__all__ = [
+    # Enums
+    "ScanStatusEnum",
+    "SeverityEnum",
+    # Auth
+    "LoginRequest",
+    "RegisterRequest",
+    "TokenResponse",
+    # Users
+    "UserResponse",
+    # Scans
+    "ScanRequest",
+    "ScanResponse",
+    # Vulnerabilities
+    "VulnerabilityResponse",
+    # Pagination
+    "PaginationParams",
+    "PaginatedResponse",
+    # Plugins
+    "PluginResponse",
+    # Reports
+    "ReportRequest",
+    # System
+    "HealthResponse",
+    "StatsResponse",
+]
+
 
 # Enums
 class ScanStatusEnum(str, Enum):

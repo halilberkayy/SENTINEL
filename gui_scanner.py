@@ -132,21 +132,40 @@ class VulnScannerGUI:
         threading.Thread(target=self.run_process, args=(url, selected), daemon=True).start()
 
     def run_process(self, url, modules):
-        # Map keys to IDs for async_scanner.py
+        # Map GUI module keys to scanner module IDs
         mapping = {
-            'xss': '1', 'sqli': '2', 'command_injection': '3', 'lfi_rfi': '4',
-            'ssrf': '5', 'csrf': '6', 'webshell': '7', 'auth': '8',
-            'api': '9', 'subdomain': '10', 'ssi': '11', 'cors': '12',
-            'open_redirect': '13', 'security_misconfig': '14',
-            'broken_access_control': '15', 'jwt': '16', 'proto_pollution': '17',
-            'cloud': '18', 'graphql': '19', 'directory': '20',
-            'headers': '21', 'security_txt': '22', 'robots_txt': '23',
-            'xxe': '24', 'ssti': '25', 'deserialization': '26',
-            'race_condition': '27', 'recon': '28'
+            'xss': 'xss_scanner',
+            'sqli': 'sqli_scanner',
+            'command_injection': 'cmd_injection',
+            'lfi_rfi': 'lfi_scanner',
+            'ssrf': 'ssrf_scanner',
+            'csrf': 'csrf_scanner',
+            'webshell': 'webshell_scanner',
+            'auth': 'auth_scanner',
+            'api': 'api_scanner',
+            'subdomain': 'subdomain_scanner',
+            'ssi': 'ssi_scanner',
+            'cors': 'cors_scanner',
+            'open_redirect': 'open_redirect',
+            'security_misconfig': 'misconfig',
+            'broken_access_control': 'broken_access_control',
+            'jwt': 'jwt_scanner',
+            'proto_pollution': 'proto_pollution',
+            'cloud': 'cloud_scanner',
+            'graphql': 'graphql_scanner',
+            'directory': 'directory_scanner',
+            'headers': 'headers_scanner',
+            'security_txt': 'security_txt_scanner',
+            'robots_txt': 'robots_scanner',
+            'xxe': 'xxe_scanner',
+            'ssti': 'ssti_scanner',
+            'deserialization': 'deserialization',
+            'race_condition': 'race_condition',
+            'recon': 'recon_scanner'
         }
-        mod_ids = [mapping[m] for m in modules]
+        mod_ids = [mapping.get(m, m) for m in modules]
         
-        cmd = [sys.executable, "async_scanner.py", "-u", url, "-m", ",".join(mod_ids)]
+        cmd = [sys.executable, "scanner.py", "-u", url, "-m", ",".join(mod_ids)]
         
         try:
             self.scan_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)

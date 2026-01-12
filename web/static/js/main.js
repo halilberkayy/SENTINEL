@@ -191,8 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 modulesGrid.appendChild(unit);
             });
         } catch (err) {
-            log('PLATFORM', 'Çekirdek senkronizasyon hatası.', 'error');
-            showToast('Modül matrisi yüklenemedi. Sunucu bağlantısını kontrol edin.', 'SİSTEM HATASI', 'error');
+            log('PLATFORM', 'Core synchronization error.', 'error');
+            showToast('Failed to load module matrix. Check server connection.', 'SYSTEM ERROR', 'error');
         }
     }
 
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     processIntel(JSON.parse(event.data));
                 } catch (e) {
-                    log('SYSTEM', 'Sunucu mesajı ayrıştırılamadı.', 'error');
+                    log('SYSTEM', 'Failed to parse server message.', 'error');
                 }
             };
 
@@ -246,17 +246,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (event.wasClean) {
                     log('SYSTEM', 'Connection closed cleanly.', 'sys');
                 } else {
-                    log('SYSTEM', 'Bağlantı kesildi. Yeniden bağlanılıyor...', 'error');
+                    log('SYSTEM', 'Connection lost. Reconnecting...', 'error');
                 }
 
                 // Exponential backoff reconnection
                 if (wsReconnectAttempts < WS_MAX_RECONNECT_ATTEMPTS) {
                     wsReconnectAttempts++;
                     const delay = Math.min(WS_BASE_DELAY * Math.pow(2, wsReconnectAttempts - 1), WS_MAX_DELAY);
-                    log('SYSTEM', `Yeniden bağlanma denemesi ${wsReconnectAttempts}/${WS_MAX_RECONNECT_ATTEMPTS} - ${delay / 1000}s içinde...`, 'sys');
+                    log('SYSTEM', `Reconnection attempt ${wsReconnectAttempts}/${WS_MAX_RECONNECT_ATTEMPTS} - retrying in ${delay / 1000}s...`, 'sys');
                     setTimeout(establishLink, delay);
                 } else {
-                    log('SYSTEM', 'Maksimum yeniden bağlanma denemesine ulaşıldı. Sayfayı yenileyin.', 'error');
+                    log('SYSTEM', 'Maximum reconnection attempts reached. Please refresh the page.', 'error');
                 }
             };
         } catch (e) {
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 log(data.module, `${data.vulnerabilities.length} adet zafiyet tespit edildi!`, 'error');
             }
         } else if (data.type === 'complete') {
-            log('COMMAND', 'Stratejik hedeflere ulaşıldı. Raporlama temiz.', 'success');
+            log('COMMAND', 'Strategic objectives achieved. Reporting complete.', 'success');
             activeModEl.innerText = 'GÜVENLİ';
             progressLine.style.width = '100%';
             progressPercent.innerText = '100%';

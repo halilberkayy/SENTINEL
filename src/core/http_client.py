@@ -58,13 +58,15 @@ class HTTPClient:
         self.error_count = 0
         self.stealth_mode = False  # Covering Tracks Mode
 
-        # Enhanced connection pooling
+        # Enhanced connection pooling with optimizations
         self.connector_settings = {
-            "limit": 50,
-            "limit_per_host": 10,
-            "ttl_dns_cache": 300,
+            "limit": 100,  # Increased total connection pool size
+            "limit_per_host": 30,  # Increased per-host connections
+            "ttl_dns_cache": 600,  # Longer DNS cache (10 minutes)
             "use_dns_cache": True,
             "enable_cleanup_closed": True,
+            "force_close": False,  # Keep connections alive
+            "keepalive_timeout": 30,  # Keep connections alive for 30s
             "ssl": self.config.verify_ssl,
         }
 

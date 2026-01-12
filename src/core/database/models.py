@@ -43,16 +43,20 @@ class UserModel(Base):
     """User table."""
 
     __tablename__ = "users"
+    __table_args__ = (
+        # Additional constraints
+        {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4"},
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
     username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[str] = mapped_column(String(50), nullable=False, default="viewer")
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    api_key: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    role: Mapped[str] = mapped_column(String(50), nullable=False, default="viewer", index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    api_key: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -66,6 +70,10 @@ class ScanJob(Base):
     """Scan job table."""
 
     __tablename__ = "scan_jobs"
+    __table_args__ = (
+        # Composite indexes for common queries
+        {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4"},
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
     target_url: Mapped[str] = mapped_column(String(2048), nullable=False, index=True)
@@ -73,10 +81,10 @@ class ScanJob(Base):
     modules: Mapped[list[str]] = mapped_column(JSON, nullable=False)
 
     # Ownership
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -96,19 +104,23 @@ class Vulnerability(Base):
     """Vulnerability findings table."""
 
     __tablename__ = "vulnerabilities"
+    __table_args__ = (
+        # Composite indexes for filtering and sorting
+        {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4"},
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    scan_job_id: Mapped[str] = mapped_column(ForeignKey("scan_jobs.id"), nullable=False, index=True)
+    scan_job_id: Mapped[str] = mapped_column(ForeignKey("scan_jobs.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Vulnerability details
-    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False, index=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     type: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     severity: Mapped[Severity] = mapped_column(SQLEnum(Severity), nullable=False, index=True)
 
     # Scoring
-    cvss_score: Mapped[float] = mapped_column(Float, nullable=True)
-    cwe_id: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    cvss_score: Mapped[float] = mapped_column(Float, nullable=True, index=True)
+    cwe_id: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
 
     # Evidence and remediation
     evidence: Mapped[dict] = mapped_column(JSON, default=dict)
@@ -116,8 +128,8 @@ class Vulnerability(Base):
     references: Mapped[list[str]] = mapped_column(JSON, default=list)
 
     # Metadata
-    module_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    module_name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     # Relationships
     scan_job: Mapped["ScanJob"] = relationship(back_populates="vulnerabilities")
