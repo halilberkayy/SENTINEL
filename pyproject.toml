@@ -127,6 +127,9 @@ pre-commit = "^3.6.0"
 [tool.poetry.scripts]
 scanner = "src.cli:main"
 scanner-api = "src.api:start_server"
+sentinel-campaign = "src.cli.redteam:campaign"
+sentinel-redteam = "src.cli.redteam:redteam_scan"
+sentinel-payload = "src.cli.redteam:payload"
 
 [tool.black]
 line-length = 120
@@ -208,7 +211,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
-    "--cov-fail-under=20",
+    "--cov-fail-under=60",
 ]
 asyncio_mode = "auto"
 markers = [

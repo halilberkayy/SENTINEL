@@ -2,8 +2,6 @@
 API v1 routes.
 """
 
-import asyncio
-
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import func, select
@@ -122,12 +120,18 @@ async def register(user_data: RegisterRequest, db: AsyncSession = Depends(get_db
     auth_manager = AuthenticationManager(secret_key)
     hashed_password = auth_manager.get_password_hash(user_data.password)
 
+    # Force role to 'viewer' for self-registration to prevent privilege escalation.
+    # Admin-assigned roles should be handled via a separate admin endpoint.
+    safe_role = "viewer"
+    if user_data.role in ("viewer", "analyst", "api_user"):
+        safe_role = user_data.role
+
     # Create user
     new_user = UserModel(
         username=user_data.username,
         email=user_data.email,
         hashed_password=hashed_password,
-        role=user_data.role,
+        role=safe_role,
     )
 
     db.add(new_user)
@@ -162,7 +166,8 @@ async def run_scan_background(scan_id: str, target_url: str, modules: list):
                             title=vuln.get("title", "Unknown"),
                             description=vuln.get("description", ""),
                             severity=vuln.get("severity", "info"),
-                            module=r.module_name,
+                            type=vuln.get("type", "unknown"),
+                            module_name=r.module_name,
                             evidence=vuln.get("evidence", {}),
                             cwe_id=vuln.get("cwe_id"),
                             remediation=vuln.get("remediation"),
@@ -222,8 +227,9 @@ async def create_scan(
     await db.commit()
     await db.refresh(scan_job)
 
-    # Trigger async scan execution in background
-    asyncio.create_task(run_scan_background(str(scan_job.id), str(scan_request.target_url), scan_request.modules))
+    # Trigger scan execution in background via FastAPI's BackgroundTasks
+    # (avoids fire-and-forget asyncio.create_task with no lifecycle management)
+    background_tasks.add_task(run_scan_background, str(scan_job.id), str(scan_request.target_url), scan_request.modules)
 
     logger.info("Scan created and started", scan_id=scan_job.id, target=scan_job.target_url)
 
@@ -366,3 +372,15 @@ async def get_stats(request: Request, db: AsyncSession = Depends(get_db)):
         users_count=users_count,
         plugins_loaded=plugins_count,
     )
+
+
+# ── Red Team API routers (v6.0.0) ──────────────────────────────────
+from src.api.v1.campaigns import router as campaigns_router
+from src.api.v1.payloads import router as payloads_router
+from src.api.v1.oob import router as oob_router
+from src.api.v1.threats import router as threats_router
+
+router.include_router(campaigns_router)
+router.include_router(payloads_router)
+router.include_router(oob_router)
+router.include_router(threats_router)

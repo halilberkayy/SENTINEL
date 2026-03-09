@@ -1,6 +1,6 @@
 # SENTINEL Plugin Development Guide
 
-**Version 5.0.0 | OWASP Top 10 2025 Compliant | 48 Modules**
+**Version 5.0.0 | OWASP Top 10 2025 | 57 Modules**
 
 This guide explains how to create custom plugins for the SENTINEL vulnerability scanner.
 

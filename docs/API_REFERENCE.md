@@ -1,6 +1,6 @@
 # SENTINEL API Reference
 
-**Version 5.0.0 | OWASP Top 10 2025 Compliant | 48 Modules**
+**Version 6.0.0 | Red Team Platform | 57+ Modules**
 
 This document provides API reference for the SENTINEL vulnerability scanner.
 
@@ -679,3 +679,266 @@ socket.onmessage = (event) => {
   console.log('Update:', data);
 };
 ```
+
+---
+
+## Red Team API (v6.0.0)
+
+All Red Team API endpoints require JWT authentication via the `Authorization: Bearer <token>` header.
+Base prefix: `/api/v1`
+
+### Campaign Management
+
+#### Create Campaign
+
+```http
+POST /api/v1/campaigns
+Content-Type: application/json
+Authorization: Bearer <token>
+```
+
+```json
+{
+  "name": "Q1 2026 Pentest",
+  "description": "Authorized security assessment",
+  "scope": {
+    "allowed_domains": ["example.com", "*.example.com"],
+    "allowed_ips": [],
+    "excluded_paths": ["/admin"]
+  },
+  "objectives": ["Identify critical vulnerabilities", "Test WAF bypass"],
+  "start_date": "2026-03-01T00:00:00Z",
+  "end_date": "2026-03-31T00:00:00Z"
+}
+```
+
+#### List Campaigns
+
+```http
+GET /api/v1/campaigns?status=active&page=1&page_size=20
+```
+
+#### Get Campaign Detail
+
+```http
+GET /api/v1/campaigns/{campaign_id}
+```
+
+Returns campaign with computed stats (targets_count, findings_count, critical_findings, etc.).
+
+#### Update Campaign
+
+```http
+PUT /api/v1/campaigns/{campaign_id}
+```
+
+Requires `lead` role in the campaign.
+
+#### Advance Campaign Phase
+
+```http
+PUT /api/v1/campaigns/{campaign_id}/phase
+```
+
+```json
+{"phase": "execution"}
+```
+
+Phases: `recon`, `initial_access`, `execution`, `persistence`, `lateral_movement`, `collection`, `exfiltration`, `c2`, `completed`
+
+#### Add Target to Campaign
+
+```http
+POST /api/v1/campaigns/{campaign_id}/targets
+```
+
+```json
+{
+  "target_url": "https://app.example.com",
+  "target_type": "web",
+  "notes": "Main web application"
+}
+```
+
+Target URL must be within the campaign scope (allowed_domains/allowed_ips).
+
+#### Launch Scan Against Target
+
+```http
+POST /api/v1/campaigns/{campaign_id}/targets/{target_id}/scan
+```
+
+```json
+{"modules": ["xss_scanner", "sqli_scanner", "ssrf_scanner"]}
+```
+
+#### Manage Campaign Members
+
+```http
+POST /api/v1/campaigns/{campaign_id}/members
+```
+
+```json
+{"user_id": "uuid-here", "role": "operator"}
+```
+
+Roles: `lead`, `operator`, `observer`
+
+#### Add Manual Finding
+
+```http
+POST /api/v1/campaigns/{campaign_id}/findings
+```
+
+```json
+{
+  "title": "SQL Injection in login form",
+  "description": "Time-based blind SQL injection...",
+  "type": "sqli",
+  "severity": "critical",
+  "evidence": {"parameter": "username", "payload": "' OR 1=1--"},
+  "mitre_techniques": [{"id": "T1190", "name": "Exploit Public-Facing Application", "tactic": "TA0001"}]
+}
+```
+
+#### Get MITRE ATT&CK Coverage
+
+```http
+GET /api/v1/campaigns/{campaign_id}/mitre
+```
+
+Returns coverage matrix organized by tactics and techniques.
+
+### Payload Builder
+
+#### Build Encoded Payload
+
+```http
+POST /api/v1/payloads/build
+```
+
+```json
+{
+  "payload": "<script>alert(1)</script>",
+  "encoders": ["html_entities", "base64"]
+}
+```
+
+Available encoders: `base64`, `hex`, `url_encode`, `double_url_encode`, `html_entities`, `unicode`, `utf7`, `random_case`
+
+#### Generate Mutations
+
+```http
+POST /api/v1/payloads/mutate
+```
+
+```json
+{
+  "payload": "SELECT * FROM users WHERE id=1",
+  "mutations": ["random_case", "space_to_comment", "comment_garbage"],
+  "count": 10
+}
+```
+
+#### Track Payload Effectiveness
+
+```http
+POST /api/v1/payloads/track
+```
+
+```json
+{
+  "campaign_id": "uuid",
+  "category": "sqli",
+  "payload": "' OR 1=1--",
+  "target_url": "https://example.com/login",
+  "effectiveness": "successful",
+  "waf_bypassed": true
+}
+```
+
+### OOB (Out-of-Band) Callbacks
+
+#### Create Listener
+
+```http
+POST /api/v1/oob/listeners
+```
+
+```json
+{
+  "campaign_id": "uuid",
+  "types": ["http", "dns"]
+}
+```
+
+Returns `callback_url` to inject into payloads.
+
+#### View Interactions
+
+```http
+GET /api/v1/oob/interactions?campaign_id=uuid
+```
+
+#### Correlate with Scan
+
+```http
+GET /api/v1/oob/interactions/correlate/{scan_id}
+```
+
+### Threat Intelligence
+
+#### List Threat Profiles
+
+```http
+GET /api/v1/threats/profiles?sector=government&motivation=espionage
+```
+
+10 built-in APT profiles (APT28, APT29, APT41, Lazarus, FIN7, Turla, OceanLotus, Sandworm, MuddyWater, Carbanak).
+
+#### Match Findings to Threat Actors
+
+```http
+POST /api/v1/threats/match
+```
+
+```json
+{"campaign_id": "uuid"}
+```
+
+Returns threat actors whose TTPs match the campaign's findings, with coverage percentage.
+
+#### Get Attack Paths
+
+```http
+GET /api/v1/threats/attack-paths/{campaign_id}
+```
+
+Returns attack chains with risk scores (0-100).
+
+#### Get MITRE Matrix for Heatmap
+
+```http
+GET /api/v1/threats/mitre-matrix?campaign_id=uuid
+```
+
+Returns full ATT&CK matrix organized by tactics for heatmap visualization.
+
+### CLI Red Team Commands
+
+```bash
+# Campaign management
+sentinel-campaign create --name "Pentest Q1" --scope '{"allowed_domains":["example.com"]}'
+sentinel-campaign list
+sentinel-campaign scan <campaign-id> --target https://example.com --modules xss,sqli
+
+# Quick red team scans with threat actor profiles
+sentinel-redteam --profile apt28 --target https://example.com
+sentinel-redteam --profile full --target https://example.com --stealth
+
+# Payload building
+sentinel-payload build "alert(1)" --encoders base64,url_encode
+sentinel-payload mutate "SELECT * FROM users" --mutations random_case,space_to_comment --count 5
+```
+
+Available profiles: `apt28`, `apt29`, `lazarus`, `fin7`, `full`

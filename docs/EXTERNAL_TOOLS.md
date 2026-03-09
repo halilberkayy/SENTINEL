@@ -92,7 +92,7 @@ apt install nikto
 
 ---
 
-## 🔐 Hash Cracker
+## Hash Cracker
 
 Parola hash'lerini tespit eden ve analiz eden modül.
 
@@ -140,7 +140,7 @@ output/wordlists/<hostname>_wordlist.txt
 
 ---
 
-## 📡 SSE Scanner
+## SSE Scanner
 
 Server-Sent Events (SSE) endpoint güvenlik tarayıcısı.
 
@@ -235,11 +235,11 @@ curl -X POST http://localhost:8000/api/tools/wordlist \
 curl http://localhost:8000/api/tools/wordlists
 ```
 
-> 📖 **Detaylı API Referansı:** [docs/API_REFERENCE.md](API_REFERENCE.md#external-tools-api)
+> Detayli API referansi: [docs/API_REFERENCE.md](API_REFERENCE.md#external-tools-api)
 
 ---
 
-## ⚠️ Önemli Notlar
+## Onemli Notlar
 
 1. **Araç Gereksinimleri**: Harici araçlar (nmap, nikto, gobuster vb.) sistemde yüklü olmalıdır. Yüklü değilse modül "Skipped" durumunda geçer.
 

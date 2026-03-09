@@ -1,55 +1,142 @@
 version: "3.8"
 
+# =============================================================================
+# SENTINEL - Security-Hardened Docker Compose
+# =============================================================================
+
 services:
-  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database - Hardened
+  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:15-alpine
     container_name: scanner-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-scanner}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-scanner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-scanner}
+      # Security: disable trust authentication
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # Security: do NOT expose ports in production (internal network only)
+    # Uncomment for development:
+    # ports:
+    #   - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U scanner"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scanner} -d ${POSTGRES_DB:-scanner}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     networks:
-      - scanner-network
+      - backend
+    restart: unless-stopped
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    # Security: drop all capabilities, add only needed ones
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - FOWNER
+      - DAC_OVERRIDE
+    # Security: read-only root filesystem where possible
+    tmpfs:
+      - /tmp:size=100M
+      - /run/postgresql:size=50M
+    command: >
+      postgres
+      -c ssl=off
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_statement=ddl
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c password_encryption=scram-sha-256
 
-  # Redis Cache
+  # ---------------------------------------------------------------------------
+  # Redis Cache - Hardened
+  # ---------------------------------------------------------------------------
   redis:
     image: redis:7-alpine
     container_name: scanner-redis
-    ports:
-      - "6379:6379"
+    # Security: do NOT expose ports in production
+    # Uncomment for development:
+    # ports:
+    #   - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-sentinel_redis_pass}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
+      start_period: 10s
     networks:
-      - scanner-network
+      - backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 64M
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-sentinel_redis_pass}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --rename-command FLUSHDB ""
+      --rename-command FLUSHALL ""
+      --rename-command DEBUG ""
+      --rename-command CONFIG ""
+      --rename-command SHUTDOWN ""
+      --bind 0.0.0.0
+      --protected-mode yes
+      --loglevel warning
+      --save 60 1000
+      --appendonly yes
 
-  # Scanner API
+  # ---------------------------------------------------------------------------
+  # Scanner API - Hardened
+  # ---------------------------------------------------------------------------
   api:
     build:
       context: ..
       dockerfile: Dockerfile
     container_name: scanner-api
     environment:
-      - DATABASE_URL=postgresql://scanner:scanner@postgres:5432/scanner
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-scanner}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-scanner}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-sentinel_redis_pass}@redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
+      # Security: restrict debug mode
+      - DEBUG=false
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -59,69 +146,146 @@ services:
       - ../output:/app/output
       - ../wordlists:/app/wordlists:ro
     networks:
-      - scanner-network
+      - backend
+      - frontend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 2G
+        reservations:
+          cpus: "1.0"
+          memory: 512M
+    cap_drop:
+      - ALL
+    # Read-only root filesystem for API
+    read_only: true
+    tmpfs:
+      - /tmp:size=200M
 
-  # Celery Worker for async tasks
+  # ---------------------------------------------------------------------------
+  # Celery Worker - Hardened
+  # ---------------------------------------------------------------------------
   celery:
     build:
       context: ..
       dockerfile: Dockerfile
     container_name: scanner-celery
-    command: celery -A src.core.celery_app worker --loglevel=info
+    command: celery -A src.core.celery_app worker --loglevel=warning --concurrency=4
     environment:
-      - DATABASE_URL=postgresql://scanner:scanner@postgres:5432/scanner
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-scanner}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-scanner}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-sentinel_redis_pass}@redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ../output:/app/output
       - ../wordlists:/app/wordlists:ro
     networks:
-      - scanner-network
+      - backend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=200M
 
-  # Prometheus for metrics
+  # ---------------------------------------------------------------------------
+  # Prometheus - Monitoring
+  # ---------------------------------------------------------------------------
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.50.0
     container_name: scanner-prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
+    # Security: bind to localhost only for development
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
     networks:
-      - scanner-network
+      - backend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    cap_drop:
+      - ALL
+    user: "nobody"
 
-  # Grafana for visualization
+  # ---------------------------------------------------------------------------
+  # Grafana - Visualization
+  # ---------------------------------------------------------------------------
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.3.3
     container_name: scanner-grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SECURITY_COOKIE_SAMESITE=strict
+      - GF_SECURITY_STRICT_TRANSPORT_SECURITY=true
     volumes:
       - grafana_data:/var/lib/grafana
+    # Security: bind to localhost only
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       - prometheus
     networks:
-      - scanner-network
+      - backend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+    cap_drop:
+      - ALL
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
   prometheus_data:
+    driver: local
   grafana_data:
+    driver: local
 
+# Network segmentation: backend services separated from public-facing
 networks:
-  scanner-network:
+  backend:
     driver: bridge
+    internal: true  # No external access
+  frontend:
+    driver: bridge   # API port exposed here

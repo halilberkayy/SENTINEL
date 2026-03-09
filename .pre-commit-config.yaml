@@ -1,8 +1,9 @@
-# Pre-commit hooks for code quality
+# Pre-commit hooks for code quality and security
 # Install: pre-commit install
 # Run manually: pre-commit run --all-files
 
 repos:
+  # ── Standard hooks ──────────────────────────────────────────────────
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -14,7 +15,11 @@ repos:
         args: ["--maxkb=1000"]
       - id: check-merge-conflict
       - id: debug-statements
+      - id: check-ast
+      - id: check-symlinks
+      - id: detect-private-key
 
+  # ── Code formatting ────────────────────────────────────────────────
   - repo: https://github.com/psf/black
     rev: 24.1.1
     hooks:
@@ -27,6 +32,7 @@ repos:
       - id: isort
         args: ["--profile", "black"]
 
+  # ── Linting ────────────────────────────────────────────────────────
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.14
     hooks:
@@ -40,9 +46,43 @@ repos:
         additional_dependencies: [types-all]
         args: [--ignore-missing-imports]
 
+  # ── Security scanning ──────────────────────────────────────────────
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.6
     hooks:
       - id: bandit
-        args: ["-c", "pyproject.toml"]
+        args: ["-c", "pyproject.toml", "-r", "src/"]
         additional_dependencies: ["bandit[toml]"]
+
+  # Secret detection - prevents committing API keys, passwords, tokens
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: |
+          (?x)^(
+            .*\.lock|
+            .*test.*|
+            docs/.*
+          )$
+
+  # Git secrets detection (gitleaks)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.1
+    hooks:
+      - id: gitleaks
+
+  # ── Dockerfile linting ─────────────────────────────────────────────
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: ["--ignore", "DL3008", "--ignore", "DL3013"]
+
+  # ── YAML/TOML validation ───────────────────────────────────────────
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.27.3
+    hooks:
+      - id: check-github-actions
+      - id: check-github-workflows

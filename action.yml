@@ -1,6 +1,6 @@
-name: "Web Vulnerability Scanner"
+name: "SENTINEL - Web Vulnerability Scanner"
 description: "Run DAST security scans in CI/CD pipelines with SARIF output for GitHub Security integration"
-author: "Web Vulnerability Scanner Team"
+author: "SENTINEL Security Team"
 
 branding:
   icon: "shield"
@@ -8,7 +8,7 @@ branding:
 
 inputs:
   target_url:
-    description: "Target URL to scan"
+    description: "Target URL to scan (must be http:// or https://)"
     required: true
 
   modules:
@@ -32,7 +32,7 @@ inputs:
     default: "scan_results.sarif"
 
   timeout:
-    description: "Scan timeout in seconds"
+    description: "Scan timeout in seconds (max 3600)"
     required: false
     default: "600"
 
@@ -45,7 +45,7 @@ inputs:
     required: false
 
   rate_limit:
-    description: "Requests per second limit"
+    description: "Requests per second limit (1-100)"
     required: false
     default: "10"
 
@@ -95,66 +95,127 @@ outputs:
 runs:
   using: "composite"
   steps:
+    # Pin to SHA for supply-chain security
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.0.0
       with:
         python-version: "3.11"
+        cache: "pip"
 
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # v4.0.2
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-wvs-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-pip-sentinel-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-wvs-
+          ${{ runner.os }}-pip-sentinel-
 
-    - name: Install scanner
+    - name: Validate inputs
+      shell: bash
+      run: |
+        # Validate target URL format (prevent command injection)
+        TARGET_URL="${{ inputs.target_url }}"
+        if [[ ! "$TARGET_URL" =~ ^https?:// ]]; then
+          echo "::error::Invalid target URL. Must start with http:// or https://"
+          exit 1
+        fi
+
+        # Validate URL doesn't contain shell metacharacters
+        if [[ "$TARGET_URL" =~ [\;\|\&\$\`\(\)\{\}] ]]; then
+          echo "::error::Target URL contains invalid characters"
+          exit 1
+        fi
+
+        # Validate timeout is numeric and within range
+        TIMEOUT="${{ inputs.timeout }}"
+        if ! [[ "$TIMEOUT" =~ ^[0-9]+$ ]] || [ "$TIMEOUT" -gt 3600 ] || [ "$TIMEOUT" -lt 30 ]; then
+          echo "::error::Timeout must be a number between 30 and 3600"
+          exit 1
+        fi
+
+        # Validate rate limit is numeric and within range
+        RATE_LIMIT="${{ inputs.rate_limit }}"
+        if ! [[ "$RATE_LIMIT" =~ ^[0-9]+$ ]] || [ "$RATE_LIMIT" -gt 100 ] || [ "$RATE_LIMIT" -lt 1 ]; then
+          echo "::error::Rate limit must be a number between 1 and 100"
+          exit 1
+        fi
+
+        # Validate severity threshold
+        THRESHOLD="${{ inputs.severity_threshold }}"
+        if [[ ! "$THRESHOLD" =~ ^(critical|high|medium|low|info)$ ]]; then
+          echo "::error::Invalid severity threshold. Must be: critical, high, medium, low, or info"
+          exit 1
+        fi
+
+        # Validate output format
+        FORMAT="${{ inputs.output_format }}"
+        if [[ ! "$FORMAT" =~ ^(sarif|json|html|txt)$ ]]; then
+          echo "::error::Invalid output format. Must be: sarif, json, html, or txt"
+          exit 1
+        fi
+
+        # Validate modules (alphanumeric, commas, underscores only)
+        MODULES="${{ inputs.modules }}"
+        if [[ ! "$MODULES" =~ ^[a-zA-Z0-9_,]+$ ]]; then
+          echo "::error::Invalid modules format. Use comma-separated alphanumeric names"
+          exit 1
+        fi
+
+    - name: Install scanner dependencies
       shell: bash
       run: |
         pip install --quiet --upgrade pip
-        pip install --quiet aiohttp beautifulsoup4 lxml colorama
+        if [ -f requirements.txt ]; then
+          pip install --quiet --no-cache-dir -r requirements.txt
+        else
+          echo "::error::requirements.txt not found"
+          exit 1
+        fi
 
     - name: Run vulnerability scan
       id: scan
       shell: bash
+      timeout-minutes: 65
       env:
-        TARGET_URL: ${{ inputs.target_url }}
-        MODULES: ${{ inputs.modules }}
-        SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
-        OUTPUT_FORMAT: ${{ inputs.output_format }}
-        OUTPUT_FILE: ${{ inputs.output_file }}
-        TIMEOUT: ${{ inputs.timeout }}
-        AUTH_TYPE: ${{ inputs.auth_type }}
-        AUTH_CREDENTIALS: ${{ inputs.auth_credentials }}
-        RATE_LIMIT: ${{ inputs.rate_limit }}
+        # Pass inputs as environment variables (safer than direct interpolation)
+        SCAN_TARGET_URL: ${{ inputs.target_url }}
+        SCAN_MODULES: ${{ inputs.modules }}
+        SCAN_SEVERITY_THRESHOLD: ${{ inputs.severity_threshold }}
+        SCAN_OUTPUT_FORMAT: ${{ inputs.output_format }}
+        SCAN_OUTPUT_FILE: ${{ inputs.output_file }}
+        SCAN_TIMEOUT: ${{ inputs.timeout }}
+        SCAN_AUTH_TYPE: ${{ inputs.auth_type }}
+        SCAN_AUTH_CREDENTIALS: ${{ inputs.auth_credentials }}
+        SCAN_RATE_LIMIT: ${{ inputs.rate_limit }}
       run: |
-        # Build command arguments
-        ARGS="--url $TARGET_URL"
-        ARGS="$ARGS --modules $MODULES"
-        ARGS="$ARGS --output $OUTPUT_FORMAT"
-        ARGS="$ARGS --output-file $OUTPUT_FILE"
-        ARGS="$ARGS --timeout $TIMEOUT"
-        ARGS="$ARGS --rate-limit $RATE_LIMIT"
+        # Build command arguments using environment variables (not direct interpolation)
+        ARGS="--url ${SCAN_TARGET_URL}"
+        ARGS="${ARGS} --modules ${SCAN_MODULES}"
+        ARGS="${ARGS} --output ${SCAN_OUTPUT_FORMAT}"
+        ARGS="${ARGS} --output-file ${SCAN_OUTPUT_FILE}"
+        ARGS="${ARGS} --timeout ${SCAN_TIMEOUT}"
+        ARGS="${ARGS} --rate-limit ${SCAN_RATE_LIMIT}"
 
-        if [ -n "$AUTH_TYPE" ]; then
-          ARGS="$ARGS --auth-type $AUTH_TYPE"
+        if [ -n "${SCAN_AUTH_TYPE}" ]; then
+          ARGS="${ARGS} --auth-type ${SCAN_AUTH_TYPE}"
         fi
 
-        # Run scanner
-        echo "🔍 Starting security scan on $TARGET_URL"
-        echo "📋 Modules: $MODULES"
-        echo "⚠️ Severity Threshold: $SEVERITY_THRESHOLD"
+        echo "Starting security scan on ${SCAN_TARGET_URL}"
+        echo "Modules: ${SCAN_MODULES}"
+        echo "Severity Threshold: ${SCAN_SEVERITY_THRESHOLD}"
 
-        python3 scanner.py $ARGS --json-summary > scan_summary.json 2>&1 || true
+        # Run scanner with timeout
+        timeout "${SCAN_TIMEOUT}" python3 scanner.py ${ARGS} --json-summary > scan_summary.json 2>&1 || true
 
-        # Parse results
-        if [ -f scan_summary.json ]; then
-          CRITICAL=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('severity_counts',{}).get('critical',0))")
-          HIGH=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('severity_counts',{}).get('high',0))")
-          MEDIUM=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('severity_counts',{}).get('medium',0))")
-          LOW=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('severity_counts',{}).get('low',0))")
-          TOTAL=$(cat scan_summary.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('total_vulnerabilities',0))")
+        # Parse results safely
+        if [ -f scan_summary.json ] && python3 -c "import json; json.load(open('scan_summary.json'))" 2>/dev/null; then
+          CRITICAL=$(python3 -c "import json; d=json.load(open('scan_summary.json')); print(d.get('severity_counts',{}).get('critical',0))")
+          HIGH=$(python3 -c "import json; d=json.load(open('scan_summary.json')); print(d.get('severity_counts',{}).get('high',0))")
+          MEDIUM=$(python3 -c "import json; d=json.load(open('scan_summary.json')); print(d.get('severity_counts',{}).get('medium',0))")
+          LOW=$(python3 -c "import json; d=json.load(open('scan_summary.json')); print(d.get('severity_counts',{}).get('low',0))")
+          TOTAL=$(python3 -c "import json; d=json.load(open('scan_summary.json')); print(d.get('total_vulnerabilities',0))")
         else
+          echo "::warning::Could not parse scan results"
           CRITICAL=0
           HIGH=0
           MEDIUM=0
@@ -162,60 +223,60 @@ runs:
           TOTAL=0
         fi
 
-        echo "critical_count=$CRITICAL" >> $GITHUB_OUTPUT
-        echo "high_count=$HIGH" >> $GITHUB_OUTPUT
-        echo "medium_count=$MEDIUM" >> $GITHUB_OUTPUT
-        echo "low_count=$LOW" >> $GITHUB_OUTPUT
-        echo "vulnerability_count=$TOTAL" >> $GITHUB_OUTPUT
-        echo "sarif_file=$OUTPUT_FILE" >> $GITHUB_OUTPUT
+        echo "critical_count=${CRITICAL}" >> $GITHUB_OUTPUT
+        echo "high_count=${HIGH}" >> $GITHUB_OUTPUT
+        echo "medium_count=${MEDIUM}" >> $GITHUB_OUTPUT
+        echo "low_count=${LOW}" >> $GITHUB_OUTPUT
+        echo "vulnerability_count=${TOTAL}" >> $GITHUB_OUTPUT
+        echo "sarif_file=${SCAN_OUTPUT_FILE}" >> $GITHUB_OUTPUT
 
         # Determine pass/fail based on threshold
         PASSED=true
-        case $SEVERITY_THRESHOLD in
+        case ${SCAN_SEVERITY_THRESHOLD} in
           critical)
-            [ "$CRITICAL" -gt 0 ] && PASSED=false
+            [ "${CRITICAL}" -gt 0 ] && PASSED=false
             ;;
           high)
-            [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ] && PASSED=false
+            [ "${CRITICAL}" -gt 0 ] || [ "${HIGH}" -gt 0 ] && PASSED=false
             ;;
           medium)
-            [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ] || [ "$MEDIUM" -gt 0 ] && PASSED=false
+            [ "${CRITICAL}" -gt 0 ] || [ "${HIGH}" -gt 0 ] || [ "${MEDIUM}" -gt 0 ] && PASSED=false
             ;;
           low)
-            [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ] || [ "$MEDIUM" -gt 0 ] || [ "$LOW" -gt 0 ] && PASSED=false
+            [ "${CRITICAL}" -gt 0 ] || [ "${HIGH}" -gt 0 ] || [ "${MEDIUM}" -gt 0 ] || [ "${LOW}" -gt 0 ] && PASSED=false
             ;;
         esac
 
-        echo "scan_passed=$PASSED" >> $GITHUB_OUTPUT
+        echo "scan_passed=${PASSED}" >> $GITHUB_OUTPUT
 
         # Print summary
         echo ""
-        echo "📊 Scan Results Summary"
+        echo "Scan Results Summary"
         echo "========================"
-        echo "🔴 Critical: $CRITICAL"
-        echo "🟠 High: $HIGH"
-        echo "🟡 Medium: $MEDIUM"
-        echo "🔵 Low: $LOW"
-        echo "📈 Total: $TOTAL"
+        echo "Critical: ${CRITICAL}"
+        echo "High: ${HIGH}"
+        echo "Medium: ${MEDIUM}"
+        echo "Low: ${LOW}"
+        echo "Total: ${TOTAL}"
         echo ""
 
-        if [ "$PASSED" = "true" ]; then
-          echo "✅ Scan passed severity threshold: $SEVERITY_THRESHOLD"
+        if [ "${PASSED}" = "true" ]; then
+          echo "Scan passed severity threshold: ${SCAN_SEVERITY_THRESHOLD}"
         else
-          echo "❌ Scan failed severity threshold: $SEVERITY_THRESHOLD"
+          echo "::warning::Scan failed severity threshold: ${SCAN_SEVERITY_THRESHOLD}"
         fi
 
     - name: Upload SARIF to GitHub Security
       if: ${{ inputs.upload_sarif == 'true' && inputs.output_format == 'sarif' }}
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@1b1aada464948af03b950897e5eb522f92603cc2  # v3.24.0
       with:
         sarif_file: ${{ inputs.output_file }}
-        category: web-vulnerability-scanner
+        category: sentinel-vulnerability-scanner
 
     - name: Upload scan artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3  # v4.3.1
       with:
-        name: vulnerability-scan-results
+        name: sentinel-scan-results
         path: |
           ${{ inputs.output_file }}
           scan_summary.json

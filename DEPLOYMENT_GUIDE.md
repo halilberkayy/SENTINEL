@@ -1,6 +1,6 @@
 # SENTINEL Deployment Guide
 
-**Version 5.0.0 | OWASP Top 10 2025 Compliant | 48 Security Modules**
+**Version 5.0.0 | OWASP Top 10 2025 | 57 Security Modules**
 
 Comprehensive deployment instructions for all environments.
 
@@ -307,7 +307,7 @@ EOF
 chmod 600 .env
 ```
 
-**🔐 Güçlü secret key oluştur:**
+**Guclu secret key olustur:**
 
 ```bash
 # SECRET_KEY oluştur
@@ -1040,7 +1040,7 @@ sudo systemctl reload nginx
 
 ---
 
-## 🎯 Quick Reference Commands
+## Quick Reference Commands
 
 ```bash
 # Development
@@ -1067,13 +1067,9 @@ curl http://localhost:8000/metrics
 
 ---
 
-## 📞 Support
+## Support
 
-Deployment sorunları için:
-- 📧 Email: halilberkaysahin@gmail.com
-- 📝 Documentation: `docs/README.md`
-- 🐛 GitHub Issues
-
----
-
-**🚀 Happy Deploying!**
+Deployment sorunlari icin:
+- Email: halilberkaysahin@gmail.com
+- Documentation: `docs/README.md`
+- GitHub Issues: https://github.com/halilberkayy/SENTINEL/issues

@@ -2,7 +2,7 @@
 Authentication and authorization module with JWT and RBAC.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 import jwt
@@ -106,14 +106,15 @@ class AuthenticationManager:
     def create_access_token(self, user: User) -> Token:
         """Create a JWT access token."""
         expires_delta = timedelta(minutes=self.access_token_expire_minutes)
-        expire = datetime.utcnow() + expires_delta
+        now = datetime.now(timezone.utc)
+        expire = now + expires_delta
 
         payload = {
             "sub": user.id,
             "username": user.username,
             "role": user.role.value,
             "exp": expire,
-            "iat": datetime.utcnow(),
+            "iat": now,
         }
 
         encoded_jwt = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)

@@ -228,12 +228,17 @@ class Config:
         """
         Validate if target is allowed for scanning.
 
+        Blocks internal/private IPs and cloud metadata endpoints to prevent
+        SSRF against the scanner's own infrastructure.
+
         Args:
             url: Target URL to validate
 
         Returns:
             True if target is allowed, False otherwise
         """
+        import ipaddress
+        import socket
         from urllib.parse import urlparse
 
         # Basic URL format validation
@@ -247,9 +252,36 @@ class Config:
             if not parsed.scheme or not parsed.netloc:
                 return False
 
-            # Check if scheme is supported
+            # Check if scheme is supported -- block file://, gopher://, dict://
             if parsed.scheme not in ["http", "https"]:
                 return False
+
+            # Extract hostname (strip port)
+            hostname = parsed.hostname
+            if not hostname:
+                return False
+
+            # Block cloud metadata endpoints
+            metadata_hosts = [
+                "169.254.169.254",
+                "metadata.google.internal",
+                "metadata.internal",
+            ]
+            if hostname in metadata_hosts:
+                return False
+
+            # Resolve hostname and check for private/reserved IPs
+            try:
+                resolved = socket.getaddrinfo(hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
+                for family, _, _, _, addr in resolved:
+                    ip_str = addr[0]
+                    ip = ipaddress.ip_address(ip_str)
+                    if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local:
+                        return False
+            except (socket.gaierror, ValueError):
+                # DNS resolution failed -- allow the scan to proceed
+                # (it will fail at connection time with a clear error)
+                pass
 
             domain = parsed.netloc
 

@@ -62,17 +62,39 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware - Configure via environment variable for production
+# CORS middleware - Secure configuration
+# SECURITY: allow_origins=["*"] with allow_credentials=True is a browser security violation.
+# Browsers will reject CORS responses with Access-Control-Allow-Origin: * when credentials are included.
+# Production deployments MUST set CORS_ALLOWED_ORIGINS to specific origins.
 import os
 
-cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "*").split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins if cors_origins != ["*"] else ["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+_cors_env = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
+_cors_origins_raw = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else []
+_is_wildcard = _cors_origins_raw == ["*"] or not _cors_origins_raw
+
+if _is_wildcard:
+    # Wildcard mode: no credentials allowed (safe default for development)
+    logger.warning(
+        "CORS configured with wildcard origins. Set CORS_ALLOWED_ORIGINS for production.",
+        hint="Example: CORS_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com",
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-Requested-With", "Accept"],
+    )
+else:
+    # Explicit origins: credentials are safe to allow
+    logger.info("CORS configured with explicit origins", origins=_cors_origins_raw)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins_raw,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-Requested-With", "Accept"],
+    )
 
 # Gzip compression
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -204,11 +226,13 @@ def start_server():
     """Start the API server (for poetry script)."""
     import uvicorn
 
+    import os
+
     uvicorn.run(
         "src.api.app:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
+        reload=os.getenv("ENVIRONMENT") != "production",
         log_level="info",
     )
 
