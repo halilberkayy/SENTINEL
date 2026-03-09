@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable
 from typing import Any
 from urllib.parse import urlparse
@@ -5,6 +6,8 @@ from urllib.parse import urlparse
 from ..core.config import Config
 from ..core.http_client import HTTPClient
 from ..modules.base_scanner import BaseScanner
+
+logger = logging.getLogger(__name__)
 
 
 class ReconScanner(BaseScanner):

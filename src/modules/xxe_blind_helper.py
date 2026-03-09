@@ -5,8 +5,11 @@ This module provides additional blind XXE detection capabilities.
 """
 
 import asyncio
+import logging
 import time
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 async def test_blind_xxe_timing(

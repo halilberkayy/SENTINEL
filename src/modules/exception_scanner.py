@@ -4,11 +4,14 @@ Detects improper error handling, information disclosure, and fail-open scenarios
 """
 
 import asyncio
+import logging
 import re
 from typing import Any
 from urllib.parse import urljoin
 
 from .base_scanner import BaseScanner
+
+logger = logging.getLogger(__name__)
 
 
 class ExceptionScanner(BaseScanner):

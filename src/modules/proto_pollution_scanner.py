@@ -123,7 +123,7 @@ class ProtoPollutionScanner(BaseScanner):
                                 )
                             )
                     except json.JSONDecodeError:
-                        logger.debug(f"Response not JSON, skipping proto pollution check for {endpoint}")
+                        logger.debug(f"Response not JSON, skipping proto pollution check for {url}")
 
                 tested += 1
 

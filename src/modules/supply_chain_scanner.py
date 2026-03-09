@@ -4,12 +4,15 @@ Comprehensive detection of supply chain vulnerabilities and compromises.
 """
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
 from .base_scanner import BaseScanner
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -559,7 +562,7 @@ class SupplyChainScanner(BaseScanner):
                         # Check for crossorigin attribute
                         if "crossorigin" not in full_tag.lower():
                             # Less severe but still notable
-                            logger.debug(f"CDN resource missing crossorigin attribute: {src}")
+                            logger.debug(f"CDN resource missing crossorigin attribute: {resource_url}")
 
         except Exception as e:
             logger.debug(f"Error verifying CDN integrity: {e}")
