@@ -88,7 +88,7 @@ def _handle_payload_browser() -> None:
 @click.option(
     "--output",
     "-o",
-    type=click.Choice(["txt", "json", "html", "md"]),
+    type=click.Choice(["txt", "json", "html", "md", "sarif"]),
     default="txt",
     help="Report output format",
 )
@@ -105,7 +105,7 @@ def main(
     fast: bool,
     verbose: bool,
 ) -> None:
-    """SENTINEL - Enterprise Web Vulnerability Scanner (Educational Use Only)"""
+    """SENTINEL - Red Team Platform (Authorized Testing Only)"""
     try:
         console.clear()
         show_banner()

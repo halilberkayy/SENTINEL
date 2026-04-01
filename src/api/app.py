@@ -53,9 +53,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 
 # Create FastAPI app
 app = FastAPI(
-    title="Enterprise Vulnerability Scanner API",
-    description="Production-grade web vulnerability scanner with advanced detection capabilities",
-    version="5.0.0",
+    title="SENTINEL Red Team Platform API",
+    description="Red team platform with scanning, campaign management, and MITRE ATT&CK coverage",
+    version="6.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
@@ -134,7 +134,7 @@ async def health_check():
     """Health check endpoint for load balancers."""
     return {
         "status": "healthy",
-        "version": "5.0.0",
+        "version": "6.0.0",
         "timestamp": structlog.processors.TimeStamper()(None, None, None)["timestamp"],
     }
 
@@ -144,7 +144,7 @@ async def health_check():
 async def detailed_health_check():
     """Detailed health check with component status."""
     components = {
-        "api": {"status": "healthy", "version": "5.0.0"},
+        "api": {"status": "healthy", "version": "6.0.0"},
         "database": {"status": "unknown"},
         "cache": {"status": "unknown"},
     }
@@ -178,7 +178,7 @@ async def detailed_health_check():
     
     return {
         "status": "healthy" if overall_healthy else "degraded",
-        "version": "5.0.0",
+        "version": "6.0.0",
         "components": components,
         "timestamp": structlog.processors.TimeStamper()(None, None, None)["timestamp"],
     }
@@ -214,8 +214,8 @@ app.include_router(api_v1_router, prefix="/api/v1")
 async def root():
     """API root endpoint."""
     return {
-        "name": "Enterprise Vulnerability Scanner API",
-        "version": "5.0.0",
+        "name": "SENTINEL API",
+        "version": "6.0.0",
         "docs": "/api/docs",
         "health": "/health",
         "metrics": "/metrics",

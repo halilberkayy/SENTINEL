@@ -1,6 +1,11 @@
 """
 Threat Actor Profile Library and TTP Matching Engine.
 Maps findings to known APT groups via MITRE ATT&CK technique correlation.
+
+Updated for ATT&CK v18 (October 2025):
+  - 216 Techniques, 475 Sub-Techniques
+  - New: T1059.013 (Container CLI/API), T1680 (Local Storage Discovery),
+         T1213.006 (Databases), T1651 (Cloud Admin Command)
 """
 
 import logging
@@ -263,38 +268,53 @@ BUILTIN_PROFILES: list[dict[str, Any]] = [
 ]
 
 
-# Vulnerability type -> MITRE technique mapping for matching
+# Vulnerability type -> MITRE ATT&CK v18 technique mapping
 VULN_TYPE_TO_TECHNIQUES: dict[str, list[str]] = {
+    # Injection / Initial Access
     "xss": ["T1189", "T1059.007"],
     "dom_xss": ["T1189", "T1059.007"],
     "sqli": ["T1190", "T1505.001"],
-    "sql_injection": ["T1190"],
-    "ssrf": ["T1190", "T1071.001"],
-    "xxe": ["T1190"],
-    "command_injection": ["T1190", "T1059"],
+    "sql_injection": ["T1190", "T1213.006"],  # v18: Databases
+    "ssrf": ["T1190", "T1071.001", "T1552.005"],
+    "xxe": ["T1190", "T1005"],
+    "command_injection": ["T1190", "T1059.004"],
     "lfi": ["T1190", "T1005"],
     "rfi": ["T1190", "T1105"],
     "ssti": ["T1190", "T1059"],
-    "deserialization": ["T1190"],
-    "csrf": ["T1189"],
-    "open_redirect": ["T1189"],
-    "broken_access_control": ["T1068"],
+    "ssi": ["T1190", "T1059"],
+    "deserialization": ["T1190", "T1059"],
+    "csrf": ["T1189", "T1204.001"],
+    "open_redirect": ["T1189", "T1566.002"],
+    "proto_pollution": ["T1189", "T1059.007"],
+    # Access Control / Auth
+    "broken_access_control": ["T1068", "T1548"],
     "auth_bypass": ["T1068", "T1110"],
     "default_credentials": ["T1078.001"],
-    "weak_password": ["T1110"],
-    "jwt_vuln": ["T1068", "T1550"],
-    "cors_misconfiguration": ["T1189"],
-    "security_misconfiguration": ["T1190"],
-    "information_disclosure": ["T1082", "T1083"],
-    "directory_listing": ["T1083"],
+    "weak_password": ["T1110", "T1110.001"],
+    "jwt_vuln": ["T1068", "T1550.001"],
+    "cors_misconfiguration": ["T1189", "T1557"],
+    # Misconfig / Info Disclosure
+    "security_misconfiguration": ["T1190", "T1082"],
+    "misconfig": ["T1190", "T1082"],
+    "information_disclosure": ["T1082", "T1083", "T1580"],
+    "directory_listing": ["T1083", "T1217", "T1680"],  # v18: Local Storage Discovery
+    "insecure_cookie": ["T1539"],
+    "security_headers_missing": ["T1189"],
+    # Red Team / Post-Exploit
     "webshell": ["T1505.003"],
-    "backdoor": ["T1505.003"],
-    "c2_indicator": ["T1071.001", "T1095"],
-    "dns_tunneling": ["T1071.004"],
-    "data_exfiltration": ["T1041", "T1048"],
-    "privilege_escalation": ["T1068"],
-    "lateral_movement": ["T1021"],
-    "persistence": ["T1547.001", "T1053.005"],
+    "backdoor": ["T1505.003", "T1546"],
+    "c2_indicator": ["T1071.001", "T1095", "T1572"],
+    "dns_tunneling": ["T1071.004", "T1048.001"],
+    "data_exfiltration": ["T1041", "T1048", "T1567"],
+    "privilege_escalation": ["T1068", "T1548"],
+    "lateral_movement": ["T1021", "T1570"],
+    "persistence": ["T1547.001", "T1053.005", "T1546.015"],
+    # Cloud / Supply Chain
+    "cloud_misconfiguration": ["T1190", "T1580", "T1651"],  # v18: Cloud Admin Command
+    "supply_chain": ["T1195.002", "T1195.003"],
+    "container_escape": ["T1611", "T1059.013"],  # v18: Container CLI/API
+    # Attack Chains
+    "attack_chain": ["T1190", "T1078"],
 }
 
 

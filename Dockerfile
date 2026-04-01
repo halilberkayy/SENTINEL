@@ -1,5 +1,5 @@
 # =============================================================================
-# SENTINEL - Enterprise Vulnerability Scanner
+# SENTINEL — Security Platform
 # Production-hardened multi-stage Dockerfile
 # =============================================================================
 
@@ -9,8 +9,8 @@ FROM python:3.11-slim@sha256:4fefca3e2401ae85e293093e82a83c0e08060c6e7c8cad3ad34
 
 # Labels for container metadata (OCI standard)
 LABEL org.opencontainers.image.title="SENTINEL" \
-      org.opencontainers.image.description="Enterprise-grade web vulnerability scanner" \
-      org.opencontainers.image.version="5.0.0" \
+      org.opencontainers.image.description="Red team and blue team security platform" \
+      org.opencontainers.image.version="6.0.0" \
       org.opencontainers.image.vendor="SENTINEL Security" \
       org.opencontainers.image.source="https://github.com/halilberkayy/SENTINEL" \
       org.opencontainers.image.licenses="MIT"

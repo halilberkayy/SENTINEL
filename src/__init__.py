@@ -1,13 +1,13 @@
 """
-Enterprise Web Vulnerability Scanner
-A professional-grade security scanning tool for educational and authorized testing purposes.
+SENTINEL — Red Team Platform
+Professional security scanning and red team operations for authorized testing.
 
 Developed by: Halil Berkay Şahin
-Version: 5.0.0
+Version: 6.0.0
 License: MIT
 """
 
-__version__ = "5.0.0"
+__version__ = "6.0.0"
 __author__ = "Halil Berkay Şahin"
 __email__ = "halilberkaysahin@gmail.com"
 __license__ = "MIT"

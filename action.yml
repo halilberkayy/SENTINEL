@@ -1,4 +1,4 @@
-name: "SENTINEL - Web Vulnerability Scanner"
+name: "SENTINEL - Security Scanner"
 description: "Run DAST security scans in CI/CD pipelines with SARIF output for GitHub Security integration"
 author: "SENTINEL Security Team"
 

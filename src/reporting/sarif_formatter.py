@@ -27,7 +27,7 @@ class SARIFFormatter:
 
     SARIF_VERSION = "2.1.0"
     SCHEMA_URI = "https://json.schemastore.org/sarif-2.1.0.json"
-    TOOL_NAME = "Web Vulnerability Scanner"
+    TOOL_NAME = "SENTINEL"
     TOOL_VERSION = "6.0.0"
     INFORMATION_URI = "https://github.com/halilberkayy/SENTINEL"
 
@@ -336,16 +336,34 @@ class SARIFFormatter:
         if severity in ["critical", "high"]:
             tags.append("critical")
 
-        # OWASP Top 10 mapping
+        # OWASP Top 10 2025 mapping
         owasp_map = {
-            "sql_injection": "A03:2021-Injection",
-            "xss": "A03:2021-Injection",
-            "command_injection": "A03:2021-Injection",
-            "xxe": "A05:2021-Security-Misconfiguration",
-            "ssrf": "A10:2021-SSRF",
-            "broken_auth": "A07:2021-Identification-and-Authentication-Failures",
-            "idor": "A01:2021-Broken-Access-Control",
-            "csrf": "A01:2021-Broken-Access-Control",
+            "sql_injection": "A05:2025-Injection",
+            "sqli": "A05:2025-Injection",
+            "xss": "A05:2025-Injection",
+            "dom_xss": "A05:2025-Injection",
+            "ssti": "A05:2025-Injection",
+            "command_injection": "A05:2025-Injection",
+            "xxe": "A05:2025-Injection",
+            "ssi": "A05:2025-Injection",
+            "ssrf": "A01:2025-Broken-Access-Control",
+            "broken_access_control": "A01:2025-Broken-Access-Control",
+            "idor": "A01:2025-Broken-Access-Control",
+            "csrf": "A01:2025-Broken-Access-Control",
+            "open_redirect": "A01:2025-Broken-Access-Control",
+            "misconfig": "A02:2025-Security-Misconfiguration",
+            "security_misconfiguration": "A02:2025-Security-Misconfiguration",
+            "cors": "A02:2025-Security-Misconfiguration",
+            "broken_auth": "A08:2025-Identification-and-Authentication-Failures",
+            "jwt_vuln": "A08:2025-Identification-and-Authentication-Failures",
+            "default_credentials": "A08:2025-Identification-and-Authentication-Failures",
+            "crypto_failure": "A04:2025-Cryptographic-Failures",
+            "insecure_design": "A06:2025-Insecure-Design",
+            "supply_chain": "A07:2025-Software-Supply-Chain-Failures",
+            "dependency": "A07:2025-Software-Supply-Chain-Failures",
+            "deserialization": "A03:2025-Vulnerable-and-Outdated-Components",
+            "logging_failure": "A09:2025-Security-Logging-and-Monitoring-Failures",
+            "exception_handling": "A10:2025-Mishandling-of-Exceptional-Conditions",
         }
 
         for key, owasp in owasp_map.items():

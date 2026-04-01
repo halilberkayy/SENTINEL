@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SENTINEL - Enterprise Web Vulnerability Scanner v5.0.0
+SENTINEL — Red Team & Blue Team Security Platform v6.0.0
 Thin wrapper that delegates to src.cli package.
 
 Developed by: Halil Berkay Sahin

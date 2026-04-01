@@ -56,7 +56,7 @@ class ExecutiveSummaryTemplate(ReportTemplate):
 # Executive Security Assessment Summary
 
 ## Overview
-This report presents the findings of a comprehensive security assessment conducted on {scan_data.get('url', 'the target application')} using Simple Web Vulnerability Scanner v4.0.0.
+This report presents the findings of a comprehensive security assessment conducted on {scan_data.get('url', 'the target application')} using SENTINEL v6.0.0.
 
 **Assessment Date:** {scan_data.get('timestamp', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
 **Target Application:** {scan_data.get('url', 'Unknown')}
@@ -282,7 +282,7 @@ This assessment utilized automated vulnerability scanning techniques to identify
 - Configuration Issues
 
 ### Tools and Techniques
-- **Scanner:** Simple Web Vulnerability Scanner v4.0.0
+- **Scanner:** SENTINEL v6.0.0
 - **Payload Database:** Comprehensive vulnerability payloads
 - **Detection Methods:** Pattern matching, response analysis, behavior testing
 - **Coverage:** URL parameters, form inputs, headers, files

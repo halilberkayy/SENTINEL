@@ -1,8 +1,8 @@
 # SENTINEL
 
-**Red Team Platform v6.0.0**
+**Security Platform v6.0.0**
 
-Enterprise-grade red team platform with 57 scanning modules, campaign management, payload framework, OOB callback infrastructure, and MITRE ATT&CK coverage tracking. Built for professional penetration testing and red team operations.
+Security platform combining offensive (Red Team) and defensive (Blue Team) capabilities. 57 scanning modules, campaign management, IOC analysis, hardening assessment, and MITRE ATT&CK v18 coverage. Built for professional penetration testing and security operations.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com)
@@ -28,11 +28,17 @@ Enterprise-grade red team platform with 57 scanning modules, campaign management
 - Authenticated scanning with session management
 - WebSocket, GraphQL, gRPC protocol support
 
+**Blue Team Operations**
+- IOC Checker with AbuseIPDB and AlienVault OTX integration
+- Security Hardening Analyzer (HTTP headers, TLS, DNS SPF/DMARC, cookie flags)
+- Incident Tracker with lifecycle management (open → investigating → contained → resolved)
+- Scored hardening reports with letter grades (A-F)
+
 **Reporting**
 - JSON, HTML, Markdown, SARIF, MITRE ATT&CK-mapped formats
 - AI-powered executive summaries via Google Gemini
 - PoC generator per vulnerability
-- CVSS v3.1 automatic scoring
+- CVSS v3.1 + v4.0 dual scoring
 
 **Infrastructure**
 - FastAPI REST API (v1) with JWT + RBAC auth
@@ -178,23 +184,23 @@ SENTINEL/
 ├── src/
 │   ├── api/                  # FastAPI app, middleware, v1 routes
 │   │   ├── middleware/       # Auth (JWT), rate limiting
-│   │   └── v1/               # campaigns, scans, payloads, oob, threats
+│   │   └── v1/               # campaigns, scans, payloads, oob, threats, blueteam
+│   ├── blueteam/             # Blue Team — IOC checker, hardening, incidents
 │   ├── core/                 # Engine, config, DB, cache, security
 │   │   ├── database/         # SQLAlchemy models + Alembic migrations
 │   │   ├── security/         # JWT, RBAC, secrets
 │   │   ├── scanner_engine.py # Lazy module registry + async orchestrator
-│   │   ├── payload_builder.py
-│   │   ├── mutation_engine.py
-│   │   ├── oob_listener.py
-│   │   └── threat_profiles.py
-│   ├── modules/              # 57 scanning modules
+│   │   ├── cvss.py           # CVSS v3.1 + v4.0 calculators
+│   │   ├── tamper_engine.py  # WAF bypass (12 techniques incl. 2025 methods)
+│   │   ├── threat_profiles.py # MITRE ATT&CK v18 TTP matching
+│   │   └── chain_analyzer.py # Multi-finding attack chain detection
+│   ├── modules/              # 57 scanning modules (lazy-loaded)
 │   ├── reporting/            # JSON, HTML, SARIF, MITRE, AI narrator
 │   ├── cli/                  # Click CLI + red team commands
 │   ├── web/                  # Web dashboard (FastAPI + WebSocket)
 │   └── plugins/              # Plugin system
-├── tests/
-│   └── unit/                 # 15 test files
-├── web/                      # Frontend HTML/CSS/JS
+├── tests/                    # Unit + integration tests
+├── web/                      # Frontend (HTML/CSS/JS)
 ├── wordlists/                # Attack dictionaries
 ├── docker/                   # docker-compose + prometheus config
 ├── migrations/               # Alembic migration files

@@ -8,7 +8,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
@@ -16,6 +16,11 @@ from ..core.config import Config
 from ..core.http_client import HTTPClient
 
 logger = logging.getLogger(__name__)
+
+# Shared thread pool across all scanner instances.
+# 57 scanners × 4 workers each = 228 threads was wasteful.
+# A single pool with 8 workers handles HTML parsing and regex offloading.
+_SHARED_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=8, thread_name_prefix="scanner")
 
 
 @dataclass
@@ -32,47 +37,54 @@ class Vulnerability:
     cvss_vector: str | None = None  # CVSS:3.1/AV:N/AC:L/...
     cvss_details: dict[str, Any] | None = None  # Full CVSS breakdown
     poc_available: bool = False
-    poc_script: str | None = None  # Python PoC script
-    poc_curl: str | None = None  # cURL command
+    poc_script: str | None = None
+    poc_curl: str | None = None
     exploit_difficulty: str = "Medium"  # Easy, Medium, Hard
     remediation: str | None = None
     references: list[str] = field(default_factory=list)
+    # CVSS 4.0 fields
+    cvss4_score: float = 0.0
+    cvss4_vector: str | None = None
+    cvss4_details: dict[str, Any] | None = None
 
     def __post_init__(self):
-        """Auto-calculate CVSS if not provided"""
         if self.cvss_score == 0.0 and self.type:
             self._auto_calculate_cvss()
 
     def _auto_calculate_cvss(self):
-        """Automatically calculate CVSS based on vulnerability type"""
+        """Auto-calculate both CVSS 3.1 and 4.0 scores."""
         try:
-            from ..core.cvss import get_cvss_for_vulnerability, get_cwe_for_vulnerability
+            from ..core.cvss import (
+                get_cvss4_for_vulnerability,
+                get_cvss_for_vulnerability,
+                get_cwe_for_vulnerability,
+            )
 
+            # CVSS 3.1
             result = get_cvss_for_vulnerability(self.type)
             if result:
                 self.cvss_score = result.score
                 self.cvss_vector = result.vector_string
                 self.cvss_details = result.to_dict()
-
-                # Set severity based on CVSS score
                 self.severity = result.severity.lower()
+                self.exploit_difficulty = "Easy" if result.vector.attack_complexity == "L" else "Hard"
 
-                # Set exploit difficulty based on attack complexity
-                if result.vector.attack_complexity == "L":
-                    self.exploit_difficulty = "Easy"
-                else:
-                    self.exploit_difficulty = "Hard"
+            # CVSS 4.0
+            result4 = get_cvss4_for_vulnerability(self.type)
+            if result4:
+                self.cvss4_score = result4.score
+                self.cvss4_vector = result4.vector_string
+                self.cvss4_details = result4.to_dict()
 
-            # Auto-fill CWE if not provided
             if not self.cwe_id:
                 cwe = get_cwe_for_vulnerability(self.type)
                 if cwe:
                     self.cwe_id = cwe
 
         except ImportError:
-            pass  # CVSS module not available
+            pass
         except Exception:
-            pass  # Silently fail for CVSS auto-calculation
+            pass
 
 
 class BaseScanner(ABC):
@@ -84,11 +96,11 @@ class BaseScanner(ABC):
         self.name = self.__class__.__name__
         self.description = "Base vulnerability scanner"
         self.version = "1.0.0"
-        self.author = "CodeMaster AI"
+        self.author = "SENTINEL"
         self.capabilities: list[str] = []
 
-        # Isolated thread pool for CPU-bound tasks (HTML parsing, regex)
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+        # Shared thread pool for CPU-bound tasks (HTML parsing, regex)
+        self.executor = _SHARED_EXECUTOR
 
         # WAF Evasion techniques enabled by default
         self.evasion_enabled = True
@@ -143,7 +155,7 @@ class BaseScanner(ABC):
             "vulnerabilities": [v.__dict__ for v in vulnerabilities],
             "evidence": evidence or {},
             "risk_level": self._get_risk_level(vulnerabilities),
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     async def _detect_waf(self, response: Any) -> str | None:

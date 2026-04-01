@@ -1,6 +1,6 @@
 # SENTINEL Deployment Guide
 
-**Version 5.0.0 | OWASP Top 10 2025 | 57 Security Modules**
+**Version 6.0.0 | OWASP Top 10 2025 | 57 Security Modules**
 
 Comprehensive deployment instructions for all environments.
 

@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# 🛡️ SENTINEL v5.2.0 - Quick Setup Script
-# 48 Modül | OWASP Top 10 2025 | Harici Araç Entegrasyonu
+# 🛡️ SENTINEL v6.0.0 - Quick Setup Script
+# 57 Modül | OWASP Top 10 2025 | Harici Araç Entegrasyonu
 # Bu script development ortamınızı hızlıca kurar
 
 set -e
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║  🛡️  SENTINEL v5.2.0 - Security Assessment Platform         ║"
-echo "║  48 Modül | OWASP 2025 | Nmap, Nikto, Gobuster Entegre      ║"
+echo "║  🛡️  SENTINEL v6.0.0 - Security Assessment Platform         ║"
+echo "║  57 Modül | OWASP 2025 | Nmap, Nikto, Gobuster Entegre      ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 

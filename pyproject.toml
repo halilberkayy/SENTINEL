@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "sentinel"
-version = "5.0.0"
-description = "Enterprise-grade web vulnerability scanner with advanced detection capabilities"
+version = "6.0.0"
+description = "Red team platform with 57 scanning modules, campaign management, and MITRE ATT&CK coverage"
 authors = ["Halil Berkay Şahin <halilberkaysahin@gmail.com>"]
 license = "MIT"
 readme = "README.md"
@@ -52,8 +52,6 @@ cryptography = "^42.0.0"
 # Parsing & Data
 beautifulsoup4 = "^4.12.0"
 lxml = "^5.1.0"
-pandas = "^2.1.0"
-numpy = "^1.26.0"
 
 # CLI & UI
 click = "^8.1.7"
@@ -63,22 +61,17 @@ websockets = "^12.0"
 email-validator = "^2.1.0"
 
 # AI & Intelligence
-google-generativeai = "^0.3.0"
+google-generativeai = "^0.8.0"
 
 # Additional async utilities
 asyncio-throttle = "^1.0.2"
 
 # Additional security
 pyopenssl = "^23.2.0"
-bcrypt = "<4.0.0"
+bcrypt = "^4.1.0"
 
 # Additional utilities
 python-json-logger = "^2.0.7"
-scapy = "^2.5.0"
-pillow = "^10.0.0"
-selenium = "^4.15.0"
-requests-html = "^0.10.0"
-weasyprint = "^60.0.0"
 
 # Monitoring & Observability
 prometheus-client = "^0.19.0"
@@ -95,8 +88,8 @@ markdown = "^3.5.0"
 
 [tool.poetry.group.dev.dependencies]
 # Testing
-pytest = "^7.4.0"
-pytest-asyncio = "^0.21.1"
+pytest = "^8.0.0"
+pytest-asyncio = "^0.24.0"
 pytest-cov = "^4.1.0"
 pytest-xdist = "^3.5.0"
 pytest-mock = "^3.12.0"
@@ -104,7 +97,7 @@ testcontainers = "^3.7.0"
 hypothesis = "^6.96.0"
 
 # Linting & Formatting
-ruff = "^0.1.14"
+ruff = "^0.8.0"
 black = "^24.1.0"
 isort = "^5.13.0"
 mypy = "^1.8.0"
@@ -157,19 +150,25 @@ skip_gitignore = true
 [tool.ruff]
 line-length = 120
 target-version = "py310"
+
+[tool.ruff.lint]
 select = [
     "E",    # pycodestyle errors
     "W",    # pycodestyle warnings
     "F",    # pyflakes
     "I",    # isort
-    "C",    # flake8-comprehensions
+    "C4",   # flake8-comprehensions
     "B",    # flake8-bugbear
     "UP",   # pyupgrade
+    "S",    # flake8-bandit (security)
+    "SIM",  # flake8-simplify
 ]
 ignore = [
     "E501",  # line too long (handled by black)
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    "S101",  # assert usage (OK in tests)
+    "S105",  # hardcoded password (false positives on test fixtures)
 ]
 
 [tool.mypy]

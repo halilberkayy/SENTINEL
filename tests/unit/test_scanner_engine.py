@@ -50,8 +50,8 @@ class TestModuleRegistry:
     """Test lazy module loading registry."""
 
     def test_registry_has_all_modules(self):
-        """Verify all 48 modules are registered."""
-        assert len(MODULE_REGISTRY) >= 47  # At least 47 modules
+        """Verify all 57 modules are registered."""
+        assert len(MODULE_REGISTRY) >= 55  # At least 55 modules
 
     def test_registry_contains_core_modules(self):
         core_modules = [

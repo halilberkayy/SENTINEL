@@ -12,7 +12,7 @@ import pkgutil
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -35,7 +35,7 @@ class ScanResult:
     details: str
     vulnerabilities: list[dict[str, Any]] = field(default_factory=list)
     evidence: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     duration: float = 0.0
     risk_level: str = "unknown"
 
@@ -288,7 +288,7 @@ class ScannerEngine:
             f"Loaded {len(active_module_ids)} modules in {load_time:.3f}s for scan on {url}"
         )
 
-        self.start_time = datetime.now()
+        self.start_time = datetime.now(UTC)
         self.results = []
 
         # Adaptive semaphore: use configured concurrency or default to 5
@@ -302,11 +302,11 @@ class ScannerEngine:
         try:
             await self.http_client.start()
 
-            tasks = {asyncio.create_task(sem_run(mid)): mid for mid in active_module_ids}
+            tasks = [asyncio.create_task(sem_run(mid), name=mid) for mid in active_module_ids]
 
-            for task in asyncio.as_completed(tasks):
+            for coro in asyncio.as_completed(tasks):
                 try:
-                    result = await task
+                    result = await coro
                     self.results.append(result)
 
                     if progress_callback:
@@ -319,8 +319,7 @@ class ScannerEngine:
                             result_callback(result)
 
                 except Exception as e:
-                    mid = tasks[task]
-                    logger.error(f"Task for module {mid} failed: {e}")
+                    logger.error(f"Module task failed: {e}")
 
             # --- POST-SCAN ANALYSIS: CHAINING ---
             if self.results:
@@ -344,21 +343,21 @@ class ScannerEngine:
 
         finally:
             await self.http_client.close()
-            self.end_time = datetime.now()
+            self.end_time = datetime.now(UTC)
 
         return self.results
 
     async def _run_module(self, module_id: str, url: str, progress_callback: Callable | None) -> ScanResult:
         """Run an individual module with timing and error isolation."""
         module = self.get_module(module_id)
-        start = datetime.now()
+        start = datetime.now(UTC)
 
         try:
             if progress_callback:
                 progress_callback(module_id, "starting", 0)
 
             raw_result = await module.scan(url, progress_callback)
-            duration = (datetime.now() - start).total_seconds()
+            duration = (datetime.now(UTC) - start).total_seconds()
 
             return ScanResult(
                 module_name=module_id,
@@ -376,7 +375,7 @@ class ScannerEngine:
                 module_name=module_id,
                 status="Error",
                 details=str(e),
-                duration=(datetime.now() - start).total_seconds(),
+                duration=(datetime.now(UTC) - start).total_seconds(),
                 risk_level="unknown",
             )
 
@@ -444,6 +443,9 @@ class ScannerEngine:
             return HTMLFormatter().format_report(scan_data)
         elif format_type.lower() == "md":
             return MarkdownFormatter().format_report(scan_data)
+        elif format_type.lower() == "sarif":
+            from ..reporting.sarif_formatter import SARIFFormatter
+            return SARIFFormatter().format_report(scan_data)
         else:
             raise ScannerException(f"Unsupported export format: {format_type}")
 
@@ -453,14 +455,14 @@ class ScannerEngine:
 
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
         scan_data = {
             "url": self.target_url,
             "timestamp": (
                 self.start_time.strftime("%Y-%m-%d %H:%M:%S")
                 if self.start_time
-                else datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                else datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
             ),
             "scan_type": "Comprehensive Security Assessment",
             "summary": self.get_scan_summary(),

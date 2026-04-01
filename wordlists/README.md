@@ -1,6 +1,6 @@
 # SENTINEL Wordlists Collection
 
-**Version 5.0.0 | January 2026**
+**Version 6.0.0 | April 2026**
 
 Comprehensive security scanning wordlist collection, fully integrated with scanner modules.
 

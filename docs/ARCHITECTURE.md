@@ -37,7 +37,7 @@ SENTINEL/
 │   │   ├── scanner_engine.py         # Orchestrator with lazy module registry
 │   │   ├── http_client.py            # Async HTTP client (aiohttp/httpx)
 │   │   ├── chain_analyzer.py         # Post-scan attack chain correlation
-│   │   ├── cvss.py                   # CVSS v3.1 scoring
+│   │   ├── cvss.py                   # CVSS v3.1 + v4.0 scoring
 │   │   ├── scan_templates.py         # Predefined scan presets
 │   │   ├── scan_repository.py        # Scan history persistence
 │   │   ├── payload_manager.py        # Payload loading and management
