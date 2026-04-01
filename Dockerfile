@@ -3,9 +3,7 @@
 # Production-hardened multi-stage Dockerfile
 # =============================================================================
 
-# Pin base image to specific digest for reproducible builds
-# python:3.11-slim based on Debian bookworm
-FROM python:3.11-slim@sha256:4fefca3e2401ae85e293093e82a83c0e08060c6e7c8cad3ad34be283ba5e4e34 AS base
+FROM python:3.11-slim AS base
 
 # Labels for container metadata (OCI standard)
 LABEL org.opencontainers.image.title="SENTINEL" \
