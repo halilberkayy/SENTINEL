@@ -22,10 +22,10 @@ class CacheManager:
     async def connect(self) -> None:
         """Connect to Redis with fallback handling."""
         try:
-            self.redis = await aioredis.from_url(
+            self.redis = aioredis.from_url(
                 self.redis_url,
                 encoding="utf-8",
-                decode_responses=False,  # We'll handle encoding ourselves
+                decode_responses=False,
                 max_connections=50,
             )
             # Test connection

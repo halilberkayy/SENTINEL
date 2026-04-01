@@ -4,7 +4,7 @@ Tests for rate limiting middleware including brute-force protection.
 
 import asyncio
 import time
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -138,7 +138,8 @@ class TestRateLimitMiddleware:
         middleware = RateLimitMiddleware(app=MagicMock())
         request = MagicMock()
         request.headers = {"X-Forwarded-For": "10.0.0.1, 192.168.1.1"}
-        assert middleware._get_client_id(request) == "10.0.0.1"
+        with patch.dict("os.environ", {"TRUST_PROXY": "1"}):
+            assert middleware._get_client_id(request) == "10.0.0.1"
 
     def test_separate_buckets_for_auth(self):
         middleware = RateLimitMiddleware(app=MagicMock())

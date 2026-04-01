@@ -24,10 +24,11 @@ class TestCacheManager:
     @pytest.mark.asyncio
     async def test_cache_connect_success(self, cache_manager):
         """Test successful cache connection."""
-        with patch("src.core.cache.redis_cache.aioredis.from_url") as mock_redis:
-            mock_redis.return_value.ping = AsyncMock(return_value=True)
+        mock_conn = AsyncMock()
+        mock_conn.ping = AsyncMock(return_value=True)
+        with patch("src.core.cache.redis_cache.aioredis.from_url", return_value=mock_conn):
             await cache_manager.connect()
-            assert cache_manager.redis is not None
+            assert cache_manager.redis is mock_conn
 
     @pytest.mark.asyncio
     async def test_cache_connect_failure_fallback(self, cache_manager):
