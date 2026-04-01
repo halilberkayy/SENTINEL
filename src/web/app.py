@@ -6,6 +6,7 @@ FastAPI-based web dashboard with WebSocket progress reporting.
 import asyncio
 import logging
 import os
+import uuid
 from typing import Any, Optional
 
 from dotenv import load_dotenv
@@ -128,7 +129,7 @@ async def start_scan_from_template(template_id: str, url: str, background_tasks:
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
 
-    scan_id = str(len(scan_manager.active_scans) + 1)
+    scan_id = uuid.uuid4().hex[:8]
     scan_manager.active_scans[scan_id] = {
         "url": url, "status": "starting", "results": [], "progress": 0, "template": template_id
     }
@@ -142,7 +143,7 @@ async def start_scan(request: ScanRequest, background_tasks: BackgroundTasks):
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
 
-    scan_id = str(len(scan_manager.active_scans) + 1)
+    scan_id = uuid.uuid4().hex[:8]
     scan_manager.active_scans[scan_id] = {"url": url, "status": "starting", "results": [], "progress": 0}
     background_tasks.add_task(run_scan_task, scan_id, url, request.modules)
     return {"scan_id": scan_id, "message": "Scan started"}
@@ -200,7 +201,7 @@ async def run_nmap_scan(request: NmapRequest, background_tasks: BackgroundTasks)
     if not runner.check_tool_available("nmap"):
         raise HTTPException(status_code=400, detail="Nmap is not installed on the system")
 
-    scan_id = f"nmap_{len(scan_manager.active_scans) + 1}"
+    scan_id = f"nmap_{uuid.uuid4().hex[:8]}"
     scan_manager.active_scans[scan_id] = {"status": "starting", "tool": "nmap"}
     background_tasks.add_task(_run_tool_task, scan_id, "nmap", request.target, request.profile)
     return {"scan_id": scan_id, "message": "Nmap scan started"}
@@ -214,7 +215,7 @@ async def run_gobuster_scan(request: GobusterRequest, background_tasks: Backgrou
     if not runner.check_tool_available("gobuster") and not runner.check_tool_available("dirb"):
         raise HTTPException(status_code=400, detail="Neither Gobuster nor Dirb is installed")
 
-    scan_id = f"gobuster_{len(scan_manager.active_scans) + 1}"
+    scan_id = f"gobuster_{uuid.uuid4().hex[:8]}"
     scan_manager.active_scans[scan_id] = {"status": "starting", "tool": "gobuster"}
     background_tasks.add_task(_run_tool_task, scan_id, "gobuster", request.target)
     return {"scan_id": scan_id, "message": "Directory scan started"}
@@ -228,14 +229,14 @@ async def run_nikto_scan(request: NmapRequest, background_tasks: BackgroundTasks
     if not runner.check_tool_available("nikto"):
         raise HTTPException(status_code=400, detail="Nikto is not installed")
 
-    scan_id = f"nikto_{len(scan_manager.active_scans) + 1}"
+    scan_id = f"nikto_{uuid.uuid4().hex[:8]}"
     background_tasks.add_task(_run_tool_task, scan_id, "nikto", request.target)
     return {"scan_id": scan_id, "message": "Nikto scan started"}
 
 
 @app.post("/api/tools/wordlist")
 async def generate_wordlist(request: WordlistRequest, background_tasks: BackgroundTasks):
-    scan_id = f"wordlist_{len(scan_manager.active_scans) + 1}"
+    scan_id = f"wordlist_{uuid.uuid4().hex[:8]}"
     background_tasks.add_task(_run_tool_task, scan_id, "wordlist", request.target)
     return {"scan_id": scan_id, "message": "Wordlist generation started"}
 

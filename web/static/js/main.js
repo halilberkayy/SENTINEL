@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentScanResults = [];
     let totalExpectedModules = 0;
     let completedModulesCount = 0;
+    let completedModulesSet = new Set();
     let scanHistory = JSON.parse(localStorage.getItem('sentinel_archives') || '[]');
     const launchTime = Date.now();
 
@@ -170,8 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function processMessage(data) {
         if (data.type === 'progress') {
             activeModEl.textContent = data.module;
-            if (data.status === 'completed' || data.percentage === 100) completedModulesCount++;
-            const pct = totalExpectedModules > 0 ? (completedModulesCount / totalExpectedModules) * 100 : data.percentage;
+            if ((data.status === 'completed' || data.percentage === 100) && !completedModulesSet.has(data.module)) {
+                completedModulesSet.add(data.module);
+                completedModulesCount++;
+            }
+            const pct = totalExpectedModules > 0 ? Math.min((completedModulesCount / totalExpectedModules) * 100, 100) : Math.min(data.percentage, 100);
             progressPercent.textContent = `${Math.round(pct)}%`;
             progressLine.style.width = `${pct}%`;
             log(data.module, data.status, 'info');
@@ -216,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logViewer.innerHTML = '';
         currentScanResults = [];
         completedModulesCount = 0;
+        completedModulesSet = new Set();
         totalExpectedModules = selectedModules.size;
         document.querySelectorAll('.ai-btn').forEach(b => { b.disabled = true; });
         findingsGrid.innerHTML = '';
