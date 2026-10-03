@@ -1,0 +1,269 @@
+[tool.poetry]
+name = "sentinel"
+version = "6.0.0"
+description = "Authorized web assessment runner. Scope-locked HTTP checks with evidence."
+authors = ["Halil Berkay Şahin <halilberkaysahin@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/halilberkayy/SENTINEL"
+repository = "https://github.com/halilberkayy/SENTINEL"
+keywords = ["security", "vulnerability-scanner", "penetration-testing", "web-security"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+# Core dependencies
+fastapi = "^0.109.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+
+# Async & HTTP
+aiohttp = "^3.9.0"
+httpx = "^0.26.0"
+requests = "^2.31.0"
+
+# Database
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.25"}
+alembic = "^1.13.0"
+asyncpg = "^0.29.0"
+psycopg2-binary = "^2.9.9"
+aiosqlite = "^0.19.0"
+
+# Cache & Queue
+redis = {extras = ["hiredis"], version = "^5.0.1"}
+celery = {extras = ["redis"], version = "^5.3.6"}
+
+# Security
+PyJWT = {extras = ["crypto"], version = "^2.8.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-multipart = "^0.0.6"
+cryptography = "^42.0.0"
+
+# Parsing & Data
+beautifulsoup4 = "^4.12.0"
+lxml = "^5.1.0"
+
+# CLI & UI
+click = "^8.1.7"
+rich = "^13.7.0"
+jinja2 = "^3.1.0"
+websockets = "^12.0"
+email-validator = "^2.1.0"
+
+# AI & Intelligence
+google-generativeai = "^0.8.0"
+
+# Additional async utilities
+asyncio-throttle = "^1.0.2"
+
+# Additional security
+pyopenssl = "^23.2.0"
+bcrypt = ">=4.1.0,<5.0.0"
+
+# Additional utilities
+python-json-logger = "^2.0.7"
+
+# Monitoring & Observability
+prometheus-client = "^0.19.0"
+opentelemetry-api = "^1.22.0"
+opentelemetry-sdk = "^1.22.0"
+opentelemetry-instrumentation-fastapi = "^0.43b0"
+structlog = "^24.1.0"
+
+# Utils
+python-dotenv = "^1.0.0"
+dnspython = "^2.5.0"
+urllib3 = "^2.1.0"
+markdown = "^3.5.0"
+
+[tool.poetry.group.dev.dependencies]
+# Testing
+pytest = "^8.0.0"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^4.1.0"
+pytest-xdist = "^3.5.0"
+pytest-mock = "^3.12.0"
+testcontainers = "^3.7.0"
+hypothesis = "^6.96.0"
+
+# Linting & Formatting
+ruff = "^0.8.0"
+black = "^24.1.0"
+isort = "^5.13.0"
+mypy = "^1.8.0"
+pylint = "^3.0.0"
+
+# Security scanning
+bandit = "^1.7.6"
+safety = "^3.0.0"
+semgrep = "^1.55.0"
+
+# Documentation
+sphinx = "^7.2.0"
+sphinx-rtd-theme = "^2.0.0"
+mkdocs = "^1.5.3"
+mkdocs-material = "^9.5.0"
+
+# Pre-commit
+pre-commit = "^3.6.0"
+
+[tool.poetry.scripts]
+scanner = "src.cli:main"
+scanner-api = "src.api:start_server"
+sentinel-campaign = "src.cli.redteam:campaign"
+sentinel-redteam = "src.cli.redteam:redteam_scan"
+sentinel-payload = "src.cli.redteam:payload"
+
+[tool.black]
+line-length = 120
+target-version = ['py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+skip_gitignore = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "C4",   # flake8-comprehensions
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "S",    # flake8-bandit (security)
+    "SIM",  # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long (handled by black)
+    "B008",   # do not perform function calls in argument defaults
+    "C901",   # too complex
+    "S101",   # assert usage (OK in tests)
+    "S105",   # hardcoded password string (false positives on token-type labels / test fixtures)
+    # ── Domain-appropriate for a security scanner ──────────────────────
+    "S110",   # try/except/pass: deliberate best-effort probing; target errors are expected and ignored
+    "S112",   # try/except/continue: same best-effort probing rationale
+    "S311",   # non-crypto random is fine for payload/jitter variety (secrets module is used for real tokens)
+    # ── Opinionated style (enforce correctness + security, not style beyond black/isort) ──
+    "SIM102", # nested if is often clearer than a combined condition in probe logic
+    "SIM108", # explicit if/else can read better than a ternary here
+    "SIM117", # nested with-statements kept for readability
+    "SIM113", # manual counters kept where enumerate would obscure intent
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Router modules register sub-routers after the base router is defined.
+"src/api/v1/__init__.py" = ["E402"]
+"src/api/app.py" = ["E402"]
+# Entrypoints manipulate sys.path / configure logging before importing the package.
+"src/core/http_client.py" = ["E402"]
+"src/payloads/wordlists.py" = ["E402"]
+"scanner.py" = ["E402"]
+"web_app.py" = ["E402"]
+# Scanner modules embed temp-path strings as payload data, not as files they create.
+"src/modules/webshell_scanner.py" = ["S108"]
+# Tests use hardcoded fixtures/credentials and set up imports dynamically.
+"tests/**" = ["S", "E402"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"
+strict_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    "aiohttp.*",
+    "bs4.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "-q",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=30",
+]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "e2e: marks tests as end-to-end tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if TYPE_CHECKING:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[tool.bandit]
+exclude_dirs = ["/tests"]
+skips = ["B101", "B601"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

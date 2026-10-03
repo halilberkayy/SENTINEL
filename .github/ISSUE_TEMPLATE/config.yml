@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability (private)
+    url: https://github.com/halilberkayy/SENTINEL/security/advisories/new
+    about: Report vulnerabilities in SENTINEL privately. Do not open a public issue.
+  - name: Documentation
+    url: https://github.com/halilberkayy/SENTINEL/tree/main/docs
+    about: API reference, architecture, plugin development, and deployment guides.

@@ -1,0 +1,541 @@
+# Subdomain Enumeration 2025/2026 - Modern Discovery
+# SecLists-2025 Compatible | Updated: January 2026
+# https://github.com/halilberkayy/SENTINEL
+
+# ============================================
+# Standard Subdomains
+# ============================================
+www
+mail
+remote
+blog
+webmail
+server
+ns1
+ns2
+smtp
+secure
+vpn
+m
+shop
+ftp
+mail2
+test
+portal
+ns
+ww1
+host
+support
+dev
+web
+bbs
+ww42
+mx
+email
+cloud
+1
+mail1
+2
+forum
+owa
+www2
+gw
+admin
+store
+mx1
+cdn
+api
+exchange
+app
+gov
+2tty
+vps
+govyty
+hubs
+news
+mx3
+media
+www1
+www3
+stg
+analytics
+preview
+cms
+docker
+kubernetes
+k8s
+
+# ============================================
+# Development & Staging (2025)
+# ============================================
+dev
+dev1
+dev2
+dev3
+development
+develop
+staging
+stage
+stg
+preprod
+pre-prod
+preproduction
+pre-production
+uat
+qa
+test
+testing
+test1
+test2
+test3
+demo
+demo1
+demo2
+sandbox
+sandbox1
+sandbox2
+alpha
+beta
+gamma
+rc
+release
+nightly
+canary
+feature
+hotfix
+bugfix
+review
+pull-request
+pr
+preview
+snapshot
+
+# ============================================
+# Cloud & Infrastructure (2025)
+# ============================================
+# AWS
+aws
+ec2
+s3
+lambda
+eks
+ecs
+rds
+elasticbeanstalk
+cloudfront
+route53
+
+# Azure
+azure
+azurewebsites
+blob
+storage
+azurefd
+trafficmanager
+
+# GCP
+gcp
+gke
+cloud
+firebase
+appengine
+cloudfunctions
+
+# Cloud General
+kubernetes
+k8s
+docker
+container
+registry
+harbor
+pods
+cluster
+node
+nodes
+master
+worker
+
+# ============================================
+# Edge & CDN (2025)
+# ============================================
+cdn
+cdn1
+cdn2
+cdn3
+assets
+static
+media
+images
+img
+files
+content
+edge
+cache
+fast
+origin
+pop
+akamai
+cloudflare
+cf
+fastly
+
+# ============================================
+# API & Services (2025)
+# ============================================
+api
+api1
+api2
+api3
+api-v1
+api-v2
+api-v3
+rest
+graphql
+grpc
+gateway
+gw
+service
+services
+microservices
+backend
+proxy
+ws
+websocket
+stream
+events
+webhook
+webhooks
+callback
+
+# ============================================
+# AI/ML Infrastructure (2025)
+# ============================================
+ai
+ml
+llm
+gpt
+openai
+model
+models
+inference
+training
+predict
+embedding
+embeddings
+vector
+vectors
+rag
+langchain
+jupyter
+notebook
+notebooks
+colab
+mlflow
+kubeflow
+tensorboard
+wandb
+huggingface
+
+# ============================================
+# Authentication & Identity (2025)
+# ============================================
+auth
+oauth
+sso
+idp
+identity
+login
+signin
+accounts
+account
+id
+saml
+oidc
+keycloak
+okta
+auth0
+cognito
+passport
+
+# ============================================
+# Database & Data (2025)
+# ============================================
+db
+database
+sql
+mysql
+postgres
+postgresql
+mongodb
+mongo
+redis
+cache
+memcache
+elastic
+elasticsearch
+opensearch
+neo4j
+cassandra
+cockroach
+timescale
+influx
+clickhouse
+data
+datastore
+warehouse
+lake
+analytics
+bi
+reporting
+
+# ============================================
+# Monitoring & Observability (2025)
+# ============================================
+monitor
+monitoring
+metrics
+prometheus
+grafana
+datadog
+newrelic
+splunk
+elk
+kibana
+logstash
+elastic
+jaeger
+zipkin
+trace
+tracing
+logging
+logs
+sentry
+error
+errors
+alerting
+alerts
+uptime
+status
+health
+
+# ============================================
+# Security (2025)
+# ============================================
+security
+secure
+vault
+secrets
+pki
+cert
+certs
+certificates
+ssl
+tls
+waf
+firewall
+ids
+ips
+siem
+soc
+pentest
+scan
+scanner
+security-headers
+
+# ============================================
+# Email & Communication (2025)
+# ============================================
+mail
+email
+smtp
+imap
+pop
+pop3
+mx
+mx1
+mx2
+mx3
+exchange
+webmail
+mail1
+mail2
+mail3
+newsletter
+mailgun
+sendgrid
+postfix
+spam
+antispam
+
+# ============================================
+# Collaboration (2025)
+# ============================================
+chat
+slack
+teams
+meet
+zoom
+webex
+conference
+call
+video
+voice
+wiki
+docs
+documentation
+confluence
+jira
+trello
+asana
+notion
+linear
+
+# ============================================
+# Internal & Corporate (2025)
+# ============================================
+intranet
+internal
+corp
+corporate
+hr
+finance
+legal
+sales
+marketing
+engineering
+ops
+devops
+sre
+platform
+infra
+infrastructure
+
+# ============================================
+# Tools & Utilities (2025)
+# ============================================
+tools
+tool
+utils
+utility
+mgmt
+management
+console
+panel
+dashboard
+admin
+administrator
+portal
+cp
+cpanel
+plesk
+webmin
+
+# ============================================
+# Regions & GEO (2025)
+# ============================================
+us
+eu
+uk
+de
+fr
+jp
+cn
+kr
+au
+in
+br
+ca
+sg
+hk
+nl
+us-east
+us-west
+eu-west
+eu-central
+ap-south
+ap-northeast
+ap-southeast
+
+# ============================================
+# Numbered Variants
+# ============================================
+www1
+www2
+www3
+www4
+www5
+server1
+server2
+server3
+node1
+node2
+node3
+app1
+app2
+app3
+web1
+web2
+web3
+host1
+host2
+host3
+proxy1
+proxy2
+proxy3
+lb1
+lb2
+lb3
+db1
+db2
+db3
+cache1
+cache2
+cache3
+mail1
+mail2
+mail3
+ns1
+ns2
+ns3
+ns4
+
+# ============================================
+# Misc (2025)
+# ============================================
+legacy
+old
+new
+archive
+backup
+bak
+temp
+tmp
+mobile
+m
+app
+apps
+api
+cdn
+git
+svn
+repo
+repository
+registry
+npm
+pypi
+maven
+nuget
+hex
+cargo
+hub
+go
+download
+downloads
+update
+updates
+release
+releases
+beta
+alpha
+rc
+snapshot

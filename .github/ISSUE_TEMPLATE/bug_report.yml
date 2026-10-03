@@ -1,0 +1,45 @@
+name: Bug report
+description: Report a defect in SENTINEL itself (not a finding it produced against a target)
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security vulnerability in SENTINEL?** Do not file it here.
+        Follow [SECURITY.md](../../SECURITY.md) and report it privately.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: Exact commands / API calls. Redact any real target hostnames.
+      placeholder: |
+        1. poetry run scanner -u http://localhost:8000 -m xss_scanner
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SENTINEL version
+      placeholder: "6.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: python
+    attributes:
+      label: Python version
+      options: ["3.10", "3.11", "3.12"]
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / traceback
+      render: shell

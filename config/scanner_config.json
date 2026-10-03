@@ -1,0 +1,41 @@
+{
+  "network": {
+    "timeout": 30,
+    "verify_ssl": true,
+    "max_retries": 3,
+    "retry_delay": 1.0,
+    "max_redirects": 10,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "rate_limit": 20
+  },
+  "scanner": {
+    "concurrent_requests": 10,
+    "max_payloads_per_module": 100,
+    "enable_advanced_detection": true,
+    "enable_waf_bypass": true,
+    "enable_ua_rotation": true,
+    "enable_false_positive_reduction": true,
+    "scan_depth": 3
+  },
+  "output": {
+    "format": "txt",
+    "output_dir": "output/reports",
+    "include_timestamps": true,
+    "include_evidence": true,
+    "severity_threshold": "LOW"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "output/logs/scanner.log",
+    "max_file_size": 10485760,
+    "backup_count": 5,
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  },
+  "security": {
+    "enable_ethical_checks": true,
+    "require_consent": true,
+    "blacklisted_domains": [],
+    "whitelisted_domains": [],
+    "max_requests_per_domain": 1000
+  }
+}

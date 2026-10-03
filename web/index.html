@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/chart.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 2.5l11 3.6v8.2c0 7.6-4.7 12.4-11 14.7C9.7 26.7 5 21.9 5 14.3V6.1l11-3.6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <circle cx="16" cy="14" r="4.3" stroke="currentColor" stroke-width="1.8"/>
+                    <circle cx="16" cy="14" r="1.6" fill="#f2555a"/>
+                    <path d="M16 18.3V23" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div>
+                <div class="brand-name">SENTINEL</div>
+                <div class="brand-version">v6.0.0</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-target="scan-view">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Red Team</span>
+            </a>
+            <a href="#" class="nav-item" data-target="templates-view">
+                <i class="fa-solid fa-bookmark"></i>
+                <span>Templates</span>
+            </a>
+            <a href="#" class="nav-item" data-target="history-view">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>History</span>
+            </a>
+            <a href="#" class="nav-item" data-target="payloads-view">
+                <i class="fa-solid fa-flask"></i>
+                <span>Payloads</span>
+            </a>
+            <a href="/campaigns" class="nav-item">
+                <i class="fa-solid fa-flag"></i>
+                <span>Engagements</span>
+            </a>
+            <a href="#" class="nav-item" data-target="blueteam-view">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Blue Team</span>
+            </a>
+            <a href="#" class="nav-item" data-target="settings-view">
+                <i class="fa-solid fa-gear"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="status-dot"></div>
+            <span id="module-count">modules</span>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- ============ SCAN VIEW ============ -->
+        <div id="scan-view" class="view active">
+            <div class="view-header">
+                <h1>Red Team</h1>
+                <div class="session-timer" id="session-clock">00:00:00</div>
+            </div>
+
+            <!-- Target Input -->
+            <div class="target-bar">
+                <div class="target-input-wrap">
+                    <i class="fa-solid fa-globe"></i>
+                    <input type="url" id="target-url" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="auto-switch" id="auto-switch" title="Auto: keşfet ve bulgulara göre takip taramalarını otomatik zincirle / discover and chain follow-up scans automatically">
+                    <div class="toggle" id="auto-toggle"></div>
+                    <span>Auto</span>
+                </div>
+                <button id="start-scan-btn" class="btn-primary">
+                    <i class="fa-solid fa-play"></i>
+                    Start Scan
+                </button>
+            </div>
+
+            <!-- Module Selection -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Modules</h2>
+                    <div class="card-actions">
+                        <button id="select-all" class="btn-ghost">Select All</button>
+                        <button id="deselect-all" class="btn-ghost">Clear</button>
+                    </div>
+                </div>
+                <div id="modules-grid" class="modules-grid">
+                    <div class="loading-placeholder">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Loading modules...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="hidden">
+                <!-- Progress -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-label">Progress</div>
+                        <div class="stat-value" id="progress-percent">0%</div>
+                        <div class="progress-bar">
+                            <div id="progress-line" class="progress-fill" style="transform: scaleX(0)"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Vulnerabilities</div>
+                        <div class="stat-value stat-danger" id="vuln-count">0</div>
+                        <div class="stat-sub" id="risk-indicator">Scanning...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Current Module</div>
+                        <div class="stat-value stat-accent" id="active-mod">Idle</div>
+                    </div>
+                </div>
+
+                <!-- Alerts -->
+                <div id="alerts-banner" class="alerts-banner hidden"></div>
+
+                <!-- Chart -->
+                <div class="card">
+                    <div class="card-header"><h2>Severity Distribution</h2></div>
+                    <div class="chart-wrap">
+                        <canvas id="vuln-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Log -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Log</h2>
+                        <i class="fa-solid fa-terminal" style="opacity:0.4"></i>
+                    </div>
+                    <div id="log-viewer" class="log-viewer">
+                        <div class="log-line info">Ready. Enter a target URL to begin.</div>
+                    </div>
+                </div>
+
+                <!-- Findings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Findings</h2>
+                        <button id="handoff-btn" class="btn-ghost" type="button">Send high and critical to Blue Team</button>
+                    </div>
+                    <div id="findings-grid" class="findings-grid"></div>
+                </div>
+
+                <!-- AI Reports -->
+                <div id="ai-intel-section" class="card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-brain" style="opacity:0.5; margin-right:8px"></i>AI Report</h2>
+                        <span id="ai-status" class="badge badge-info">Ready</span>
+                    </div>
+                    <div class="ai-controls">
+                        <button class="ai-btn" data-type="executive">Executive Summary</button>
+                        <button class="ai-btn" data-type="technical">Technical Report</button>
+                        <button class="ai-btn" data-type="risk">Risk Assessment</button>
+                        <button class="ai-btn btn-primary" data-type="all">Full Analysis</button>
+                        <select id="ai-language" class="select-small">
+                            <option value="en">English</option>
+                            <option value="tr">Turkce</option>
+                        </select>
+                    </div>
+                    <div id="ai-report-container" style="display:none">
+                        <div id="ai-loading" class="loading-placeholder" style="display:none">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <span>Generating report...</span>
+                        </div>
+                        <div id="ai-report-content" class="ai-report-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PoC Modal -->
+            <div id="poc-modal" class="modal hidden">
+                <div class="modal-backdrop"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Proof of Concept</h3>
+                        <button class="btn-icon" id="close-poc-modal"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="poc-tabs">
+                            <button class="poc-tab active" data-format="nuclei">Nuclei</button>
+                            <button class="poc-tab" data-format="python">Python</button>
+                            <button class="poc-tab" data-format="curl">cURL</button>
+                            <button class="poc-tab" data-format="burp_request">Burp</button>
+                            <button class="poc-tab" data-format="html">HTML</button>
+                        </div>
+                        <pre id="poc-code" class="code-block"><code></code></pre>
+                        <button class="btn-primary" id="copy-poc" style="width:100%; margin-top:12px">
+                            <i class="fa-solid fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ TEMPLATES VIEW ============ -->
+        <div id="templates-view" class="view">
+            <div class="view-header"><h1>Scan Templates</h1></div>
+            <div class="target-bar">
+                <div class="target-input-wrap">
+                    <i class="fa-solid fa-globe"></i>
+                    <input type="url" id="template-target-url" placeholder="https://example.com" autocomplete="off">
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2>Templates</h2>
+                    <span id="template-count" class="badge badge-info">Loading...</span>
+                </div>
+                <div id="templates-grid" class="templates-grid">
+                    <div class="loading-placeholder">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Loading templates...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ HISTORY VIEW ============ -->
+        <div id="history-view" class="view">
+            <div class="view-header">
+                <h1>Scan History</h1>
+                <button id="clear-history" class="btn-ghost btn-danger">Clear All</button>
+            </div>
+            <div class="card">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Target</th>
+                            <th>Date</th>
+                            <th>Findings</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-list">
+                        <tr><td colspan="4" class="empty-state">No scan history yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============ PAYLOADS VIEW ============ -->
+        <div id="payloads-view" class="view">
+            <div class="view-header"><h1>Payloads</h1></div>
+            <div class="payloads-layout">
+                <div class="card payload-sidebar">
+                    <div class="card-header"><h2>Category</h2></div>
+                    <div class="payload-cats">
+                        <button class="cat-btn active" data-cat="all">All</button>
+                        <button class="cat-btn" data-cat="XSS">XSS</button>
+                        <button class="cat-btn" data-cat="SQLi">SQLi</button>
+                        <button class="cat-btn" data-cat="SSRF">SSRF</button>
+                        <button class="cat-btn" data-cat="LFI">LFI / RFI</button>
+                        <button class="cat-btn" data-cat="RCE">RCE</button>
+                        <button class="cat-btn" data-cat="XXE">XXE</button>
+                    </div>
+                </div>
+                <div class="card" style="flex:1">
+                    <table class="table">
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Risk</th><th></th></tr>
+                        </thead>
+                        <tbody id="payload-table-body">
+                            <tr><td colspan="4" class="empty-state">Select a category</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payload Detail Modal -->
+            <div id="payload-modal" class="modal hidden">
+                <div class="modal-backdrop"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="pm-title">Payload Details</h3>
+                        <button class="btn-icon" id="close-payload-modal"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <label class="field-label">Payload</label>
+                        <pre class="code-block" id="pm-payload"></pre>
+                        <div class="detail-row">
+                            <div><label class="field-label">Risk</label><div id="pm-risk" class="badge"></div></div>
+                            <div><label class="field-label">Target Params</label><div id="pm-params" class="mono-text"></div></div>
+                        </div>
+                        <label class="field-label">Execution Guide</label>
+                        <p id="pm-guide" class="detail-text"></p>
+                        <label class="field-label">Evasion Tips</label>
+                        <p id="pm-evasion" class="detail-text"></p>
+                        <button id="pm-copy-btn" class="btn-primary" style="width:100%; margin-top:16px">
+                            <i class="fa-solid fa-copy"></i> Copy Payload
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ BLUE TEAM VIEW ============ -->
+        <div id="blueteam-view" class="view">
+            <div class="view-header"><h1>Blue Team</h1></div>
+
+            <!-- IOC Checker -->
+            <div class="card">
+                <div class="card-header"><h2><i class="fa-solid fa-search" style="opacity:0.4;margin-right:6px"></i>IOC Checker</h2></div>
+                <div class="card-body">
+                    <p style="font-size:12px;color:var(--text-3);margin-bottom:12px">Check IPs, domains, or file hashes against AbuseIPDB, AlienVault OTX, and local blocklists.</p>
+                    <div style="display:flex;gap:8px;margin-bottom:16px">
+                        <div class="target-input-wrap" style="flex:1">
+                            <i class="fa-solid fa-fingerprint"></i>
+                            <input type="text" id="ioc-input" placeholder="IP, domain, or hash (e.g. 203.0.113.50)" autocomplete="off">
+                        </div>
+                        <button id="ioc-check-btn" class="btn-primary"><i class="fa-solid fa-search"></i> Check</button>
+                    </div>
+                    <div id="ioc-result" style="display:none">
+                        <div id="ioc-result-content"></div>
+                    </div>
+                    <!-- Bulk check -->
+                    <details style="margin-top:12px">
+                        <summary style="font-size:12px;color:var(--text-3);cursor:pointer">Bulk Check (one per line, max 50)</summary>
+                        <textarea id="ioc-bulk-input" class="input" style="margin-top:8px;height:100px;font-family:var(--mono);font-size:11px" placeholder="8.8.8.8&#10;evil.com&#10;44d88612fea8a8f36de82e1278abb02f"></textarea>
+                        <button id="ioc-bulk-btn" class="btn-ghost" style="margin-top:8px">Check All</button>
+                    </details>
+                    <div id="ioc-bulk-results" style="margin-top:12px"></div>
+                </div>
+            </div>
+
+            <!-- Hardening Analyzer -->
+            <div class="card">
+                <div class="card-header"><h2><i class="fa-solid fa-lock" style="opacity:0.4;margin-right:6px"></i>Hardening Analyzer</h2></div>
+                <div class="card-body">
+                    <p style="font-size:12px;color:var(--text-3);margin-bottom:12px">Assess security headers, TLS configuration, DNS records (SPF/DMARC), and cookie flags.</p>
+                    <div style="display:flex;gap:8px;margin-bottom:16px">
+                        <div class="target-input-wrap" style="flex:1">
+                            <i class="fa-solid fa-globe"></i>
+                            <input type="url" id="hardening-url" placeholder="https://example.com" autocomplete="off">
+                        </div>
+                        <button id="hardening-btn" class="btn-primary"><i class="fa-solid fa-shield-halved"></i> Analyze</button>
+                    </div>
+                    <div id="hardening-result" style="display:none">
+                        <div id="hardening-score" class="stats-row" style="margin-bottom:12px"></div>
+                        <div id="hardening-checks"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incident Tracker -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-list-check" style="opacity:0.4;margin-right:6px"></i>Incidents</h2>
+                    <button id="incident-create-btn" class="btn-primary" style="padding:6px 14px"><i class="fa-solid fa-plus"></i> New</button>
+                </div>
+                <div id="incident-stats" style="padding:12px 20px;border-bottom:1px solid var(--border)"></div>
+                <div id="incident-list" style="padding:16px">
+                    <div class="empty-state">No incidents yet. Create one from a scan finding or manually.</div>
+                </div>
+            </div>
+
+            <!-- Create Incident Modal -->
+            <div id="incident-modal" class="modal hidden">
+                <div class="modal-backdrop"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>New Incident</h3>
+                        <button class="btn-icon" id="close-incident-modal"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="field"><label class="field-label">Title</label><input type="text" id="inc-title" class="input" placeholder="e.g. SQL Injection on /api/users"></div>
+                        <div class="field"><label class="field-label">Description</label><textarea id="inc-desc" class="input" style="height:80px" placeholder="Describe the incident..."></textarea></div>
+                        <div class="detail-row">
+                            <div class="field">
+                                <label class="field-label">Severity</label>
+                                <select id="inc-severity" class="select-small" style="width:100%">
+                                    <option value="critical">Critical</option>
+                                    <option value="high">High</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Category</label>
+                                <select id="inc-category" class="select-small" style="width:100%">
+                                    <option value="vulnerability">Vulnerability</option>
+                                    <option value="malware">Malware</option>
+                                    <option value="phishing">Phishing</option>
+                                    <option value="unauthorized_access">Unauthorized Access</option>
+                                    <option value="data_leak">Data Leak</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field"><label class="field-label">Tags (comma separated)</label><input type="text" id="inc-tags" class="input" placeholder="web, production, urgent"></div>
+                        <button id="inc-submit" class="btn-primary" style="width:100%;margin-top:8px">Create Incident</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ SETTINGS VIEW ============ -->
+        <div id="settings-view" class="view">
+            <div class="view-header"><h1>Settings</h1></div>
+            <div class="settings-grid">
+                <div class="card">
+                    <div class="card-header"><h2>Network</h2></div>
+                    <div class="card-body">
+                        <div class="field">
+                            <label class="field-label">Request Timeout (seconds)</label>
+                            <input type="number" id="config-timeout" value="30" class="input">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Rate Limit (req/sec)</label>
+                            <input type="number" id="config-rate-limit" value="10" class="input">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Concurrency: <span id="concurrent-value">10</span></label>
+                            <input type="range" id="config-concurrent" min="1" max="50" value="10" class="range">
+                        </div>
+                        <button id="save-config-btn" class="btn-primary" style="width:100%">Save</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h2>Security</h2></div>
+                    <div class="card-body">
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">SSL Verification</div>
+                                <div class="toggle-desc">Verify TLS certificates</div>
+                            </div>
+                            <div id="ssl-toggle" class="toggle"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="grid-column: 1/-1">
+                    <div class="card-header"><h2>System</h2></div>
+                    <div class="info-grid">
+                        <div class="info-item"><div class="info-label">Version</div><div class="info-value">6.0.0</div></div>
+                        <div class="info-item"><div class="info-label">Modules</div><div class="info-value" id="settings-module-count">—</div></div>
+                        <div class="info-item"><div class="info-label">Standard</div><div class="info-value">OWASP 2025</div></div>
+                        <div class="info-item"><div class="info-label">AI Engine</div><div class="info-value" id="ai-engine-status">Checking...</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
