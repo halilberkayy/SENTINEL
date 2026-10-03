@@ -91,7 +91,7 @@ jobs:
       - name: pip-audit
         run: pip-audit -r requirements.txt --format json --output pip-audit-report.json
         continue-on-error: true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: security-reports
           path: |
@@ -112,7 +112,7 @@ jobs:
         run: |
           pip install build
           python -m build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
