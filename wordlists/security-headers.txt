@@ -1,0 +1,235 @@
+# Security Headers Test Patterns
+# Patterns for testing security header configurations and bypasses
+
+# Content Security Policy (CSP) Test Values
+script-src 'self'
+script-src 'unsafe-inline'
+script-src 'unsafe-eval'
+script-src *
+script-src data:
+script-src blob:
+script-src 'none'
+script-src https:
+script-src http:
+default-src 'self'
+default-src 'none'
+default-src *
+object-src 'none'
+base-uri 'self'
+frame-ancestors 'none'
+frame-ancestors 'self'
+frame-src 'none'
+form-action 'self'
+connect-src 'self'
+font-src 'self'
+img-src 'self'
+media-src 'self'
+style-src 'self'
+style-src 'unsafe-inline'
+worker-src 'self'
+child-src 'self'
+
+# X-Frame-Options Test Values
+DENY
+SAMEORIGIN
+ALLOW-FROM https://example.com
+ALLOWALL
+
+# X-Content-Type-Options Test Values
+nosniff
+
+# X-XSS-Protection Test Values
+1; mode=block
+1
+0
+
+# Strict-Transport-Security Test Values
+max-age=31536000
+max-age=31536000; includeSubDomains
+max-age=31536000; includeSubDomains; preload
+max-age=0
+
+# Referrer-Policy Test Values
+no-referrer
+no-referrer-when-downgrade
+origin
+origin-when-cross-origin
+same-origin
+strict-origin
+strict-origin-when-cross-origin
+unsafe-url
+
+# Permissions-Policy Test Values
+camera=()
+microphone=()
+geolocation=()
+accelerometer=()
+gyroscope=()
+magnetometer=()
+payment=()
+usb=()
+fullscreen=()
+display-capture=()
+
+# Feature-Policy Test Values (Legacy)
+camera 'none'
+microphone 'none'
+geolocation 'none'
+payment 'none'
+
+# Cross-Origin-Embedder-Policy Test Values
+require-corp
+unsafe-none
+
+# Cross-Origin-Opener-Policy Test Values
+same-origin
+same-origin-allow-popups
+unsafe-none
+
+# Cross-Origin-Resource-Policy Test Values
+same-site
+same-origin
+cross-origin
+
+# Content-Type Test Values
+text/html
+text/html; charset=utf-8
+application/json
+application/xml
+text/plain
+text/javascript
+application/javascript
+text/css
+image/svg+xml
+
+# Cache-Control Test Values
+no-cache
+no-store
+must-revalidate
+max-age=0
+private
+public
+no-cache, no-store, must-revalidate
+
+# Pragma Test Values
+no-cache
+
+# Expires Test Values
+0
+-1
+Thu, 01 Jan 1970 00:00:00 GMT
+
+# Server Test Values
+nginx
+apache
+IIS
+cloudflare
+Microsoft-IIS/10.0
+nginx/1.18.0
+Apache/2.4.41
+
+# X-Powered-By Test Values
+PHP/7.4.0
+ASP.NET
+Express
+Django
+Rails
+Laravel
+
+# Set-Cookie Test Values
+HttpOnly
+Secure
+SameSite=Strict
+SameSite=Lax
+SameSite=None
+
+# Access-Control Headers
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Origin: null
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Headers: *
+Access-Control-Expose-Headers: *
+Access-Control-Max-Age: 86400
+
+# Security Header Bypass Patterns
+# CSP Bypass Attempts
+'unsafe-inline' 'unsafe-eval'
+data: blob: 'unsafe-inline'
+* 'unsafe-eval'
+https: data: 'unsafe-inline'
+
+# Frame Options Bypass
+X-Frame-Options: ALLOW-FROM javascript:
+X-Frame-Options: ALLOWALL
+
+# XSS Protection Bypass
+X-XSS-Protection: 0
+
+# Content Type Bypass
+X-Content-Type-Options: 
+
+# HSTS Bypass
+Strict-Transport-Security: max-age=0
+
+# Common Insecure Configurations
+Content-Security-Policy: default-src *
+Content-Security-Policy: script-src 'unsafe-inline' 'unsafe-eval'
+X-Frame-Options: ALLOWALL
+X-XSS-Protection: 0
+Strict-Transport-Security: max-age=0
+
+# Missing Headers Test Patterns
+# These represent checks for missing security headers
+NO_CSP_HEADER
+NO_XFRAME_HEADER
+NO_XSS_PROTECTION_HEADER
+NO_CONTENT_TYPE_OPTIONS_HEADER
+NO_HSTS_HEADER
+NO_REFERRER_POLICY_HEADER
+
+# Custom Security Headers
+X-Download-Options: noopen
+X-Permitted-Cross-Domain-Policies: none
+X-Robots-Tag: noindex, nofollow
+X-UA-Compatible: IE=edge
+
+# Information Disclosure Headers
+Server: nginx/1.18.0 (Ubuntu)
+X-Powered-By: PHP/7.4.0
+X-AspNet-Version: 4.0.30319
+X-AspNetMvc-Version: 5.2
+
+# Debug Headers
+X-Debug: true
+X-Debug-Mode: on
+X-Development: true
+
+# Common Misconfigurations
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Content-Security-Policy: script-src *
+X-Frame-Options: ALLOW-FROM *
+
+# HTTP Method Override Headers
+X-HTTP-Method-Override: PUT
+X-HTTP-Method-Override: DELETE
+X-Method-Override: PUT
+X-Method-Override: DELETE
+
+# Custom Application Headers
+X-API-Version: v1
+X-Rate-Limit: 1000
+X-Request-ID: 12345
+X-Forwarded-For: 127.0.0.1
+X-Real-IP: 127.0.0.1
+
+# Cloud Provider Headers
+CF-Ray: 123456789abcdef0-LAX
+X-Amz-Cf-Id: ABCDEF123456
+X-Azure-Ref: 0123456789ABCDEF
+
+# CDN Headers
+X-Cache: HIT
+X-Cache-Status: HIT
+X-Served-By: cache-server-01

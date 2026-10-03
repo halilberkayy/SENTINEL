@@ -1,0 +1,47 @@
+# Common webshell signatures and patterns
+# Format: filename|signature_pattern|severity
+
+# PHP Webshells
+shell.php|eval($_POST|critical
+c99.php|c99shell|critical
+r57.php|r57shell|critical
+b374k.php|b374k|critical
+wso.php|WSO 2\.|critical
+p0wny.php|p0wny@shell|critical
+alfa.php|alfa.*shell|critical
+idx.php|IndoXploit|critical
+adminer.php|Adminer.*Editor|medium
+phpinfo.php|phpinfo\(\)|low
+uploader.php|move_uploaded_file|medium
+backdoor.php|passthru.*system|critical
+cmd.php|shell_exec|high
+shell_exec.php|exec\(.*\$_|critical
+system.php|system\(.*\$_|critical
+webshell.php|base64_decode.*eval|critical
+mini.php|<?.*eval.*?>|high
+spy.php|FilesMan|critical
+bypass.php|disable_functions|high
+pwn.php|assert.*eval|critical
+
+# ASP/ASPX Webshells
+aspshell.aspx|ProcessStartInfo|critical
+cmdasp.asp|WScript\.Shell|critical
+shell.aspx|System\.Diagnostics\.Process|critical
+webshell.aspx|Server\.CreateObject|high
+cmd.aspx|cmd\.exe|high
+
+# JSP Webshells
+jspshell.jsp|Runtime\.getRuntime|critical
+shell.jsp|ProcessBuilder|critical
+cmd.jsp|exec\(.*request|critical
+backdoor.jsp|getParameter.*exec|critical
+
+# Generic patterns
+evil.php|c99sh_|critical
+hack.php|r57sh|critical
+owned.php|b374k|critical
+pwned.php|wso\.|critical
+0x.php|0x.*shell|critical
+root.php|rootshell|critical
+ax.php|AngelSword|critical
+legion.php|Legion|critical

