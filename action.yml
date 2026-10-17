@@ -268,7 +268,7 @@ runs:
 
     - name: Upload SARIF to GitHub Security
       if: ${{ inputs.upload_sarif == 'true' && inputs.output_format == 'sarif' }}
-      uses: github/codeql-action/upload-sarif@1b1aada464948af03b950897e5eb522f92603cc2  # v3.24.0
+      uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d  # v3.24.0
       with:
         sarif_file: ${{ inputs.output_file }}
         category: sentinel-vulnerability-scanner
